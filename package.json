@@ -29,9 +29,6 @@
     "README.md"
   ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.27.0",
-    "better-sqlite3": "^12.6.2",
-    "dotenv": "^16.4.7",
-    "zod": "^3.24.0"
+    "better-sqlite3": "^12.6.2"
   }
 }
