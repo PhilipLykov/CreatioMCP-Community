@@ -30,12 +30,13 @@ The Community Edition is **free** and provides the core capabilities needed to g
 - Safe read-only access — no risk of accidental data modifications
 
 ### Machine Academy™
-Knowledge-assisted implementation guidance grounded in practical Creatio development patterns:
-- Full-text search across curated implementation guidance
-- Component catalog with Freedom UI patterns
-- Handler patterns and deployment best practices
-- Cross-database SQL reference
-- Auto-generated Cursor IDE rules (.mdc files)
+General-purpose AI models lack Creatio-specific training data and hallucinate when asked to generate Creatio code — inventing non-existent APIs, wrong component names, and deprecated patterns. Machine Academy solves this by grounding your AI IDE in a curated, verified knowledge base of Creatio 8.x documentation and code examples. It teaches Cursor or Claude Desktop to write Creatio code correctly on the first attempt.
+
+- Full-text search across curated implementation guidance with verified code examples
+- Component catalog with Freedom UI patterns — eliminates hallucinated component names
+- Handler patterns verified against Creatio 8.x API
+- Cross-database SQL reference (MSSQL and PostgreSQL)
+- Auto-generated Cursor IDE rules (.mdc files) that inject Creatio conventions into the AI's instructions
 
 ### AI-Generated Development Rules
 - Automatic generation of `.cursor/rules/*.mdc` files with Creatio conventions
@@ -217,10 +218,10 @@ For pricing and licensing inquiries, contact: **philip@itsc.md**
 
 ## Security
 
-- AES-256-GCM credential encryption at rest
-- File integrity verification with SHA-256 manifests
-- OWASP Top 10 compliance
-- No telemetry or data collection — all processing stays on-premises
+- **Credential encryption** — All Creatio connection credentials (URLs, logins, passwords, OAuth secrets) stored in `~/.creatiomcp/` are encrypted with AES-256-GCM. The encryption key is generated automatically on first run and bound to the local machine via PBKDF2-SHA-512 — zero configuration required
+- **File integrity verification** — SHA-256 manifests detect tampering with distributed files
+- **OWASP Top 10 compliance** — Input validation, path sanitization, error handling
+- **No telemetry** — No data collection, no phone-home. All processing stays on your machine
 
 ## License
 
