@@ -1,0 +1,63 @@
+# Creatio Core Concepts
+
+## Packages
+Deployment unit. Contains schemas, data, resources, SQL scripts.
+
+```
+PackageName/
+├── descriptor.json    # UId, version, name, dependencies
+├── Schemas/           # Entity, ClientModule, SourceCode, etc.
+├── Data/              # Seed/lookup data
+├── Resources/         # Localizable strings
+├── SqlScripts/        # SQL migrations
+└── Files/src/         # JS, CSS, LESS, images
+```
+
+**Types:** Preinstalled (read-only) | Custom (editable) | Assembly (.NET DLL) | Composable app
+
+**descriptor.json:**
+```json
+{
+  "Descriptor": {
+    "UId": "guid-here",
+    "PackageVersion": "8.1.0",
+    "Name": "UsrMyPackage",
+    "Maintainer": "CompanyName",
+    "DependsOn": [{ "UId": "guid", "PackageVersion": "8.1.0", "Name": "CrtCore" }]
+  }
+}
+```
+
+## Schema Types
+
+| Type | Creates | Use |
+|------|---------|-----|
+| **Entity (Object)** | ORM class + DB table | Data model |
+| **Client Module** | Freedom UI page/component | Front-end |
+| **Source Code** | C# class | Server logic |
+| **Business Process** | BPMN workflow | Automation |
+| **SQL Script** | DB query/view/procedure | Data migration |
+| **Data** | Seed records | Lookup values |
+
+## Freedom UI (Current)
+- Angular-based, MVVM, HandlerChain pattern
+- Composable architecture, `Crt` prefix packages (e.g. `CrtCore`)
+- JSON-configured schemas, not imperative code
+- All new development MUST use Freedom UI
+
+## Classic UI (Legacy — DO NOT USE)
+- ExtJS-based (`Ext.define`), being deprecated
+- `Base` package prefix
+- Only maintain existing Classic UI, never create new
+
+## Architecture Layers
+```
+DesignTime → Schema (metadata JSON)
+RunTime    → View (Angular) + ViewModel (logic) + Model (data)
+```
+
+## Database Support
+- **On-premises:** MSSQL, PostgreSQL, Oracle
+- **Cloud:** PostgreSQL only
+- **Cache:** Redis
+- All SQL must be compatible with BOTH MSSQL and PostgreSQL

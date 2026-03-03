@@ -1,0 +1,67 @@
+---
+description: Security rules for Creatio development
+alwaysApply: true
+---
+
+# Creatio Security Rules
+
+## Credential Safety
+
+- NEVER expose credentials, API keys, or tokens in generated code
+- NEVER log BPMCSRF tokens, session cookies, or `.ASPXAUTH` values
+- Store secrets in environment variables or encrypted configuration — not in source
+
+## Data Access
+
+- Prefer OData / DataService API over raw SQL for CRUD operations
+- When SQL is required, use ONLY parameterized queries — no string concatenation
+- Validate and sanitize all user-supplied inputs before use in queries or API calls
+- Apply least-privilege: request only the columns and rows needed
+
+## Cross-Database SQL Compatibility
+
+All SQL must work on BOTH MS SQL Server AND PostgreSQL:
+
+| Use | Instead of |
+|---|---|
+| `CONCAT(a, b)` | `a + b` (MSSQL only) |
+| `CURRENT_TIMESTAMP` | `GETDATE()` (MSSQL only) |
+| `COALESCE(a, b)` | `ISNULL(a, b)` (MSSQL only) |
+| `CAST(x AS TEXT)` | `CAST(x AS NVARCHAR)` (MSSQL only) |
+| Standard `LIMIT/OFFSET` | `TOP N` (MSSQL only) |
+
+- Avoid database-specific functions without providing a cross-DB alternative
+- Test queries against both engines before deployment
+
+## API Calls
+
+- Always include BPMCSRF token in mutating requests (POST/PUT/DELETE)
+- Use HTTPS for all Creatio endpoint communication
+- Validate SSL certificates in production — allow self-signed only in dev/test
+
+## Security Audit Tools
+
+When reviewing security posture or compliance of a Creatio instance, use the built-in audit tools:
+
+### Quick Checks (SMB Tier)
+- `creatio_audit_password_policy` — NIST 800-63B / OWASP password benchmarks
+- `creatio_audit_session_config` — session timeout and management
+- `creatio_audit_auth_methods` — Forms/LDAP/SSO detection
+- `creatio_audit_security_headers` — HTTP headers vs OWASP guidelines
+- `creatio_audit_log_config` — audit logging status (disabled by default in Creatio!)
+
+### Enterprise Security Assessment
+- `creatio_audit_rbac_model` — full RBAC hierarchy with dangerous operation flags
+- `creatio_audit_user_privileges` — per-user effective permissions and risk score
+- `creatio_audit_dormant_users` — inactive users with active permissions
+- `creatio_audit_separation_of_duties` — toxic privilege combinations
+- `creatio_audit_system_operations` — dangerous operation grants
+- `creatio_audit_external_exposure` — portal/external role data exposure
+- `creatio_audit_object_permissions` — role × entity CRUD matrix
+- `creatio_audit_column_permissions` — column-level access restrictions
+- `creatio_audit_api_surface` — web services, processes, SQL script inventory
+- `creatio_security_posture_score` — weighted 0-100 score with A-F grade
+- `creatio_compliance_evidence` — SOC 2, GDPR, ISO 27001 control mapping
+- `creatio_security_baseline` — configuration baseline and drift detection
+
+See `creatio-infosec.mdc` for detailed workflows and parameter reference.

@@ -1,0 +1,37 @@
+{
+  "name": "creatio-mcp-server",
+  "version": "1.0.0-beta",
+  "description": "AI-powered MCP server for Creatio platform development — Community Edition",
+  "type": "module",
+  "bin": {
+    "creatio-mcp-server": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "mcp",
+    "creatio",
+    "ai",
+    "development",
+    "low-code",
+    "crm",
+    "model-context-protocol",
+    "community"
+  ],
+  "license": "SEE LICENSE IN LICENSE",
+  "files": [
+    "dist/",
+    "LICENSE",
+    "EULA.md",
+    "README.md"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.0",
+    "better-sqlite3": "^12.6.2",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.0"
+  }
+}

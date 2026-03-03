@@ -1,0 +1,132 @@
+# OData 4 API Reference
+
+**Base URL:** `{CreatioURL}/0/odata`
+**Auth:** Cookie (BPMCSRF header required for POST/PATCH/DELETE) or OAuth Bearer token.
+
+## CRUD Operations
+
+### Read (GET)
+```
+GET /0/odata/Contact
+GET /0/odata/Contact(guid'12345678-1234-1234-1234-123456789abc')
+GET /0/odata/Contact?$select=Name,Email&$filter=Name eq 'John'&$top=10
+GET /0/odata/Contact?$expand=Account&$orderby=CreatedOn desc
+GET /0/odata/Contact/$count
+```
+
+### Create (POST)
+```
+POST /0/odata/Contact
+Content-Type: application/json
+BPMCSRF: {token}
+
+{ "Name": "John Doe", "Email": "john@example.com" }
+```
+
+### Update (PATCH)
+```
+PATCH /0/odata/Contact(guid'...')
+Content-Type: application/json
+BPMCSRF: {token}
+
+{ "Email": "newemail@example.com" }
+```
+
+### Delete (DELETE)
+```
+DELETE /0/odata/Contact(guid'...')
+BPMCSRF: {token}
+```
+
+## Query Parameters
+
+| Parameter | Example | Purpose |
+|-----------|---------|---------|
+| `$select` | `$select=Name,Email` | Choose columns |
+| `$filter` | `$filter=Name eq 'John'` | Filter rows |
+| `$orderby` | `$orderby=CreatedOn desc` | Sort results |
+| `$top` | `$top=50` | Limit rows |
+| `$skip` | `$skip=100` | Pagination offset |
+| `$expand` | `$expand=Account` | Include related entities |
+| `$count` | `$count=true` | Include total count |
+
+## Filter Operators
+
+| Operator | Example |
+|----------|---------|
+| `eq` | `$filter=Name eq 'John'` |
+| `ne` | `$filter=Status ne 'Closed'` |
+| `gt` | `$filter=Age gt 25` |
+| `ge` | `$filter=Age ge 18` |
+| `lt` | `$filter=Amount lt 1000` |
+| `le` | `$filter=Amount le 500` |
+| `and` | `$filter=Name eq 'John' and Age gt 25` |
+| `or` | `$filter=Status eq 'New' or Status eq 'Open'` |
+| `not` | `$filter=not contains(Name, 'test')` |
+| `contains` | `$filter=contains(Name, 'John')` |
+| `startswith` | `$filter=startswith(Name, 'J')` |
+| `endswith` | `$filter=endswith(Email, '.com')` |
+
+## Metadata
+
+```
+GET /0/odata/$metadata
+```
+Returns XML with all entity definitions, properties, relationships, and types.
+
+## DataService API (Alternative)
+
+**Base URL:** `{CreatioURL}/0/DataService/json/reply/`
+
+### SelectQuery
+```json
+POST /0/DataService/json/reply/SelectQuery
+{
+  "rootSchemaName": "Contact",
+  "operationType": 0,
+  "columns": {
+    "items": {
+      "Name": { "expression": { "columnPath": "Name", "expressionType": 0 } }
+    }
+  }
+}
+```
+
+### InsertQuery
+```json
+POST /0/DataService/json/reply/InsertQuery
+{
+  "rootSchemaName": "Contact",
+  "operationType": 1,
+  "columnValues": {
+    "items": {
+      "Name": {
+        "expressionType": 2,
+        "parameter": { "dataValueType": 1, "value": "John Doe" }
+      }
+    }
+  }
+}
+```
+
+### BatchQuery
+```json
+POST /0/DataService/json/reply/BatchQuery
+{ "items": [ /* SelectQuery, InsertQuery, UpdateQuery, DeleteQuery */ ] }
+```
+
+## DataValueType Codes (DataService)
+
+| Code | Type |
+|------|------|
+| 0 | GUID |
+| 1 | Text |
+| 4 | Integer |
+| 5 | Float |
+| 7 | Money |
+| 8 | DateTime |
+| 9 | Date |
+| 10 | Time |
+| 12 | Boolean |
+| 13 | Blob |
+| 14 | Image |

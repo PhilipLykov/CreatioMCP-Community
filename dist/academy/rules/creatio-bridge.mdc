@@ -1,0 +1,166 @@
+---
+description: Import and bridge tools for converting external artifacts into Creatio configurations
+alwaysApply: true
+---
+
+# Creatio Bridge & Import Tools Rules
+
+You have access to a suite of import and bridge tools that convert external artifacts (BPMN diagrams, spreadsheets, Figma designs, OpenAPI specs, Jira projects, requirements documents) into Creatio-native configurations. Use these tools whenever the user wants to bring external data or designs into Creatio.
+
+## When to Use Bridge/Import Tools
+
+ALWAYS use bridge/import tools when the user asks about:
+- Importing a BPMN process diagram or workflow
+- Converting a spreadsheet or CSV into Creatio entities
+- Importing an OpenAPI/Swagger specification
+- Converting Figma mockups into Freedom UI pages
+- Migrating Jira project structure into Creatio
+- Parsing requirements documents into Creatio specs
+- Listing supported import formats
+- Validating an import before applying it
+- Generating a full project specification from multiple artifacts
+- Guided import workflows
+
+## Tool Reference — SMB Tier (6 tools)
+
+### Import & Parse Tools
+
+| When user asks about... | Use this tool |
+|---|---|
+| Import a BPMN XML/file as a visual process reference | `creatio_import_bpmn` |
+| Import a diagram (UML, flowchart, ER) | `creatio_import_diagram` |
+| Convert a spreadsheet/CSV into entity definitions | `creatio_import_spreadsheet` |
+| Import an OpenAPI/Swagger spec (read-only mapping) | `creatio_import_openapi` |
+| Parse a requirements document into structured specs | `creatio_parse_requirements` |
+| List all supported import formats and capabilities | `creatio_list_import_formats` |
+
+### Tool Details
+
+**`creatio_import_bpmn`** — Imports BPMN 2.0 XML and produces a visual process reference with element mapping to Creatio process constructs. Does NOT create an executable process — use for documentation and planning.
+
+**`creatio_import_diagram`** — Accepts UML class diagrams, flowcharts, entity-relationship diagrams. Outputs structured Creatio entity or process recommendations.
+
+**`creatio_import_spreadsheet`** — Reads Excel (.xlsx) or CSV files and maps columns to Creatio entity column definitions. Generates entity schema recommendations with data types, lookups, and relationships.
+
+**`creatio_import_openapi`** — Parses an OpenAPI 3.x or Swagger 2.x specification and maps endpoints to Creatio web service integrations. SMB tier produces a read-only mapping report.
+
+**`creatio_parse_requirements`** — Accepts plain-text or markdown requirements documents. Extracts entities, fields, business rules, and process steps. Outputs a structured specification ready for Creatio development.
+
+**`creatio_list_import_formats`** — Returns the complete list of supported import file types and their capabilities per tier. Use this when the user asks "what can I import?" or "what formats do you support?"
+
+## Tool Reference — Enterprise Tier (6 tools)
+
+### Advanced Import & Generation Tools
+
+| When user asks about... | Use this tool |
+|---|---|
+| Import BPMN as an executable Creatio business process | `creatio_import_bpmn_executable` |
+| Convert Figma designs into Freedom UI page schemas | `creatio_import_figma` |
+| Import Jira project structure (epics, stories, fields) | `creatio_import_jira` |
+| Import OpenAPI with full integration scaffolding | `creatio_import_openapi_full` |
+| Validate an import artifact before applying | `creatio_validate_import` |
+| Generate a complete project specification from artifacts | `creatio_generate_project_spec` |
+
+### Tool Details
+
+**`creatio_import_bpmn_executable`** — Converts BPMN 2.0 XML into a Creatio-native executable business process definition. Maps BPMN elements to Creatio process elements (User Task, Script Task, Gateway, Timer, Signal). Produces a deployable process schema.
+
+**`creatio_import_figma`** — Reads Figma design exports and generates Freedom UI `viewConfigDiff` page schemas with correct component mapping (`crt.Input`, `crt.ComboBox`, `crt.FlexContainer`, etc.). Produces layout-accurate page definitions.
+
+**`creatio_import_jira`** — Imports Jira project structure including epics, stories, custom fields, and workflows. Maps to Creatio entities, sections, and business processes. Useful for migrating project management into Creatio.
+
+**`creatio_import_openapi_full`** — Full OpenAPI import with generated web service configurations, request/response mappings, authentication setup, and integration process scaffolding. Goes beyond the SMB read-only mapping.
+
+**`creatio_validate_import`** — Pre-flight validation of any import artifact. Checks format compliance, identifies unsupported elements, estimates conversion fidelity, and reports warnings. **Always run this before applying an Enterprise import.**
+
+**`creatio_generate_project_spec`** — Combines multiple import artifacts (BPMN + spreadsheet + requirements + Figma) into a unified project specification. Outputs a complete development plan with entities, pages, processes, and integrations.
+
+## Guided Prompts
+
+Use these for multi-tool orchestrated import workflows:
+
+| Prompt | Tier | When to use |
+|---|---|---|
+| `creatio_guided_bpmn_import` | SMB+ | User has a BPMN file and needs step-by-step import guidance |
+| `creatio_guided_data_model` | SMB+ | User has a spreadsheet/CSV and wants to build entities from it |
+| `creatio_requirements_to_project` | Enterprise | User has a requirements doc and wants a full project plan |
+| `creatio_full_project_from_artifacts` | Enterprise | User has multiple artifacts and wants a complete project spec |
+
+## Typical Workflows
+
+### "I have a BPMN file" (SMB)
+
+1. `creatio_list_import_formats` — confirm BPMN 2.0 is supported
+2. `creatio_import_bpmn` — import as visual reference
+3. Review the process mapping and discuss with user
+4. Manually create the Creatio process based on the mapping
+
+Or use the guided prompt: **`creatio_guided_bpmn_import`**
+
+### "I have a BPMN file" (Enterprise)
+
+1. `creatio_validate_import` — validate the BPMN file first
+2. `creatio_import_bpmn_executable` — convert to executable Creatio process
+3. Deploy and test the generated process
+
+### "I have a spreadsheet with my data model"
+
+1. `creatio_import_spreadsheet` — convert columns to entity definitions
+2. Review entity schemas, adjust data types and lookups
+3. Create entities in Creatio using the generated specifications
+
+Or use the guided prompt: **`creatio_guided_data_model`**
+
+### "I have Figma mockups" (Enterprise)
+
+1. `creatio_validate_import` — validate the Figma export
+2. `creatio_import_figma` — convert to Freedom UI page schemas
+3. Review and refine the generated `viewConfigDiff`
+4. Deploy using `creatio_compile` → `creatio_flush_cache`
+
+### "I have an OpenAPI spec for integration"
+
+**SMB:**
+1. `creatio_import_openapi` — get read-only endpoint mapping
+2. Manually configure web service integration based on the mapping
+
+**Enterprise:**
+1. `creatio_validate_import` — validate the spec
+2. `creatio_import_openapi_full` — generate full integration scaffolding
+3. Review generated web service configurations and process elements
+
+### "I have a requirements document" (Enterprise)
+
+1. `creatio_parse_requirements` — extract structured specs
+2. `creatio_generate_project_spec` — produce a full project plan
+3. Review entities, pages, processes, and integrations
+
+Or use the guided prompt: **`creatio_requirements_to_project`**
+
+### "I have multiple artifacts — build everything" (Enterprise)
+
+1. `creatio_validate_import` — validate each artifact
+2. `creatio_generate_project_spec` — combine all into a unified spec
+3. Review the complete development plan with the user
+
+Or use the guided prompt: **`creatio_full_project_from_artifacts`**
+
+## Supported Formats Summary
+
+| Format | SMB Tool | Enterprise Tool |
+|---|---|---|
+| BPMN 2.0 XML | `creatio_import_bpmn` (visual) | `creatio_import_bpmn_executable` (executable) |
+| UML / Flowchart / ER diagram | `creatio_import_diagram` | `creatio_import_diagram` |
+| Excel (.xlsx) / CSV | `creatio_import_spreadsheet` | `creatio_import_spreadsheet` |
+| OpenAPI 3.x / Swagger 2.x | `creatio_import_openapi` (mapping) | `creatio_import_openapi_full` (scaffolding) |
+| Figma design export | — | `creatio_import_figma` |
+| Jira project export | — | `creatio_import_jira` |
+| Requirements (text/markdown) | `creatio_parse_requirements` | `creatio_parse_requirements` |
+
+## Validation Best Practices
+
+- **Always validate before Enterprise imports** — run `creatio_validate_import` to catch issues early
+- Review validation warnings before proceeding — unsupported elements are skipped, not failed
+- For BPMN imports, verify that all process elements have Creatio equivalents
+- For spreadsheet imports, verify data type mappings match expectations
+- For Figma imports, verify component mapping to `crt.*` components is accurate

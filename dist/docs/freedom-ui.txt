@@ -1,0 +1,169 @@
+# Freedom UI Schema Structure
+
+## Complete Schema Template
+
+```javascript
+define("UsrEntityName_FormPage", [], function() {
+    return {
+        modelConfigDiff: /**SCHEMA_MODEL_CONFIG_DIFF*/[
+            {
+                "operation": "merge",
+                "path": "",
+                "values": {
+                    "primaryDataSourceName": "PDS",
+                    "primaryDataSourceConfig": {
+                        "entitySchemaName": "UsrEntityName",
+                        "attributes": {
+                            "UsrName": { "path": "UsrName" }
+                        }
+                    }
+                }
+            }
+        ]/**SCHEMA_MODEL_CONFIG_DIFF*/,
+        viewConfigDiff: /**SCHEMA_VIEW_CONFIG_DIFF*/[
+            {
+                "operation": "insert",
+                "name": "UsrNameInput",
+                "parentName": "SectionContentWrapper",
+                "propertyName": "items",
+                "index": 0,
+                "values": {
+                    "type": "crt.Input",
+                    "label": "Name",
+                    "control": "$PDS.UsrName"
+                }
+            }
+        ]/**SCHEMA_VIEW_CONFIG_DIFF*/,
+        viewModelConfigDiff: /**SCHEMA_VIEW_MODEL_CONFIG*/{
+            "attributes": {
+                "IsFieldVisible": { "value": true }
+            }
+        }/**SCHEMA_VIEW_MODEL_CONFIG*/,
+        validators: /**SCHEMA_VALIDATORS*/{}/**SCHEMA_VALIDATORS*/,
+        converters: /**SCHEMA_CONVERTERS*/{}/**SCHEMA_CONVERTERS*/,
+        handlers: /**SCHEMA_HANDLERS*/[
+            {
+                request: "crt.HandleViewModelInitRequest",
+                handler: async (request, next) => {
+                    await next?.handle(request);
+                }
+            }
+        ]/**SCHEMA_HANDLERS*/
+    };
+});
+```
+
+## 6 Required Sections
+
+1. **modelConfigDiff** — Data sources (PDS = primary, additional via `dataSources`)
+2. **viewConfigDiff** — Visual component tree (layout + inputs)
+3. **viewModelConfigDiff** — Attributes, computed values
+4. **validators** — Field validation rules
+5. **converters** — Value transformation functions
+6. **handlers** — Business logic (HandlerChain)
+
+Each section MUST be wrapped in its token comment pair.
+
+## viewConfigDiff Operations
+
+### insert — Add new element
+```json
+{
+    "operation": "insert",
+    "name": "UsrMyField",
+    "parentName": "GeneralInfoContainer",
+    "propertyName": "items",
+    "index": 0,
+    "values": { "type": "crt.Input", "label": "Field", "control": "$PDS.UsrMyField" }
+}
+```
+
+### merge — Modify existing element
+```json
+{
+    "operation": "merge",
+    "name": "UsrMyField",
+    "values": { "readonly": true, "visible": "$IsFieldVisible" }
+}
+```
+
+### remove — Delete element
+```json
+{ "operation": "remove", "name": "UsrOldField" }
+```
+
+### move — Relocate element
+```json
+{
+    "operation": "move",
+    "name": "UsrMyField",
+    "parentName": "NewParentContainer",
+    "propertyName": "items",
+    "index": 0
+}
+```
+
+## Data Binding
+
+| Pattern | Purpose |
+|---------|---------|
+| `$PDS.UsrColumnName` | Bind to entity column via Primary Data Source |
+| `$IsFieldVisible` | Bind to ViewModel attribute |
+| `$Resources.Strings.Caption` | Bind to localizable string |
+
+## Page Container Hierarchy
+
+```
+MainHeader
+├── TitleContainer
+└── ActionButtonsContainer
+
+MainContainer
+├── MainFilterContainer
+│   ├── LeftFilterContainer
+│   └── RightFilterContainer
+└── SectionContentWrapper        ← INSERT YOUR COMPONENTS HERE
+    ├── TabPanel / FlexContainer
+    │   ├── Tab/Section with inputs
+    │   └── Tab/Section with DataGrid
+    └── ActionPanel
+```
+
+## Page Templates (Inheritance)
+
+| Template | Package | Use |
+|----------|---------|-----|
+| `BaseTemplate` | CrtUIv2 | All form pages |
+| `BaseGridSectionTemplate` | CrtUIv2 | List/grid sections |
+| `PageWithLeftAreaTemplate` | CrtUIv2 | Left sidebar pages |
+
+Always inherit from `BaseTemplate` or a descendant for form pages.
+
+## Additional Data Sources
+
+```json
+{
+    "operation": "merge",
+    "path": "",
+    "values": {
+        "dataSources": {
+            "ActivityDS": {
+                "type": "crt.EntityDataSource",
+                "config": { "entitySchemaName": "Activity" },
+                "scope": "viewElement"
+            }
+        }
+    }
+}
+```
+
+## Validators Example
+
+```javascript
+validators: /**SCHEMA_VALIDATORS*/{
+    "UsrNameValidator": {
+        "type": "crt.StringLengthValidator",
+        "params": { "minLength": 1, "maxLength": 250 }
+    }
+}/**SCHEMA_VALIDATORS*/
+```

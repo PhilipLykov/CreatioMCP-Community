@@ -1,0 +1,132 @@
+# Creatio Anti-Patterns — What NOT To Do
+
+## 1. Missing Token Comments
+Token comments are REQUIRED. The Creatio Designer uses them to parse and modify schemas.
+
+```javascript
+// BAD — will break Designer
+viewConfigDiff: [...]
+
+// GOOD — always wrap with token comments
+viewConfigDiff: /**SCHEMA_VIEW_CONFIG_DIFF*/[...]/**SCHEMA_VIEW_CONFIG_DIFF*/
+```
+
+All 6 tokens required:
+- `/**SCHEMA_VIEW_CONFIG_DIFF*/` ... `/**SCHEMA_VIEW_CONFIG_DIFF*/`
+- `/**SCHEMA_MODEL_CONFIG_DIFF*/` ... `/**SCHEMA_MODEL_CONFIG_DIFF*/`
+- `/**SCHEMA_VIEW_MODEL_CONFIG*/` ... `/**SCHEMA_VIEW_MODEL_CONFIG*/`
+- `/**SCHEMA_VALIDATORS*/` ... `/**SCHEMA_VALIDATORS*/`
+- `/**SCHEMA_CONVERTERS*/` ... `/**SCHEMA_CONVERTERS*/`
+- `/**SCHEMA_HANDLERS*/` ... `/**SCHEMA_HANDLERS*/`
+
+## 2. Breaking the Handler Chain
+Every handler MUST call `next?.handle(request)` or the chain stops silently.
+
+```javascript
+// BAD — chain broken, downstream handlers never fire
+handler: async (request, next) => {
+    doSomething();
+}
+
+// GOOD — chain preserved
+handler: async (request, next) => {
+    doSomething();
+    await next?.handle(request);
+}
+```
+
+Exception: return early intentionally (e.g., blocking save on validation failure).
+
+## 3. Modifying Preinstalled Packages
+Never edit schemas in Creatio's built-in packages. They get overwritten on update.
+
+```
+BAD:  Edit "ContactPageV2" in CrtContactApp package
+GOOD: Create a REPLACING client module in your custom package
+```
+
+## 4. MSSQL-Only SQL
+Cloud Creatio uses PostgreSQL. Marketplace apps must support both.
+
+```sql
+-- BAD (MSSQL only)
+SELECT TOP 10 * FROM Contact
+SELECT LEN(Name) FROM Contact
+SELECT GETDATE()
+SELECT NEWID()
+
+-- SAFE (cross-database)
+SELECT * FROM Contact LIMIT 10  -- PostgreSQL
+CONCAT('a', 'b')                -- both
+CURRENT_TIMESTAMP               -- both
+```
+
+**Best approach:** Use OData `$top=10` instead of raw SQL whenever possible.
+
+## 5. Hardcoded GUIDs
+GUIDs differ between environments. Never hardcode them.
+
+```sql
+-- BAD
+WHERE TypeId = '12345678-1234-1234-1234-123456789abc'
+
+-- GOOD: use system settings or lookup by name
+WHERE TypeId = (SELECT Id FROM ContactType WHERE Name = 'Employee')
+```
+
+## 6. Classic UI Patterns in Freedom UI
+Never mix ExtJS patterns with Freedom UI.
+
+```javascript
+// BAD — Classic UI (ExtJS)
+Ext.define("ContactPageV2", {
+    entitySchemaName: "Contact",
+    diff: [...]
+});
+
+// GOOD — Freedom UI
+define("UsrContactPage", [], function() {
+    return {
+        viewConfigDiff: /**SCHEMA_VIEW_CONFIG_DIFF*/[...]/**SCHEMA_VIEW_CONFIG_DIFF*/,
+        // ... all 6 sections
+    };
+});
+```
+
+## 7. Missing Usr Prefix
+All custom elements MUST have the `Usr` prefix (or your registered vendor prefix).
+
+```
+BAD:  VacationRequest, StatusLookup, myCustomField
+GOOD: UsrVacationRequest, UsrStatusLookup, UsrMyCustomField
+```
+
+## 8. Inline Business Logic
+Don't put complex logic directly in viewConfigDiff. Use handlers.
+
+```javascript
+// BAD — logic in view config
+"visible": someComplexCondition()
+
+// GOOD — bind to attribute, control via handler
+"visible": "$IsFieldVisible"
+// Then set IsFieldVisible in HandleViewModelAttributeChangeRequest handler
+```
+
+## 9. Skipping Compilation
+Schema changes are NOT live. You must compile after every change.
+
+```
+Change schema → compile → flush cache → refresh browser
+```
+
+## 10. No PDS Binding
+Components must bind to the Primary Data Source for data persistence.
+
+```json
+// BAD — no data binding
+{ "type": "crt.Input", "label": "Name" }
+
+// GOOD — bound to PDS column
+{ "type": "crt.Input", "label": "Name", "control": "$PDS.UsrName" }
+```

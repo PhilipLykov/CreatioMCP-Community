@@ -1,0 +1,56 @@
+# Creatio Development Best Practices
+
+## Architecture
+
+1. **Always use Freedom UI** for new development — Classic UI (ExtJS) is deprecated
+2. **Use composable architecture** — depend on `Crt*` packages, not classic `Base`/`*Core`
+3. **One concern per handler** — split complex logic into multiple handler entries
+4. **Inherit from base templates** — form pages from `BaseTemplate`, sections from `BaseGridSectionTemplate`
+
+## Code Quality
+
+1. **All 6 sections with token comments** in every client module schema
+2. **Always call `await next?.handle(request)`** at end of every handler
+3. **Never modify preinstalled packages** — use REPLACING schemas in your custom package
+4. **Bind all inputs to PDS** — `"control": "$PDS.UsrColumnName"`
+5. **Use validators** for field validation, not manual checks in handlers
+6. **Use attributes** for UI state (visibility, readonly) — bind with `$AttributeName`
+
+## Naming
+
+1. **`Usr` prefix** on all custom elements (or your registered vendor prefix)
+2. **PascalCase** everywhere: `UsrVacationRequest`, `UsrStartDate`
+3. **Entity + `_FormPage` suffix** for edit pages: `UsrVacationRequest_FormPage`
+4. **Descriptive handler names** for custom requests: `usr.CalculateTotalRequest`
+
+## SQL & Data Access
+
+1. **Prefer OData** (`/0/odata/`) over raw SQL — cross-DB safe, strongly typed
+2. **Prefer DataService** over raw SQL when OData is insufficient
+3. **Test SQL on both MSSQL and PostgreSQL** — cloud uses PostgreSQL only
+4. **Use `CURRENT_TIMESTAMP`** not `GETDATE()` or `NOW()`
+5. **Use `CONCAT()`** for string concatenation — not `+` or `||`
+6. **Never hardcode GUIDs** — look up by Name or use system settings
+7. **Parameterize queries** — no string concatenation in SQL
+
+## Security
+
+1. **Never expose credentials** in generated code or logs
+2. **Never log BPMCSRF tokens** or session cookies
+3. **Validate all user inputs** before processing
+4. **Use HTTPS** for all Creatio communication
+5. **Follow OWASP Top 10** — especially injection prevention
+
+## Performance
+
+1. **Use `$select`** — fetch only needed columns, not entire entities
+2. **Use `$top`** — always limit result sets
+3. **Batch operations** — use `BatchQuery` for multiple data operations
+4. **Minimize handler logic** — avoid expensive operations in attribute change handlers
+
+## Package Management
+
+1. **Lock package before editing** — `clio lock-pkg PackageName -e Env`
+2. **Set meaningful versions** — semantic versioning X.Y.Z
+3. **Declare all dependencies** in `descriptor.json`
+4. **Include seed data** for lookup entities in package Data folder

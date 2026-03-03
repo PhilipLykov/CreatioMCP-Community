@@ -1,0 +1,107 @@
+# SQL Compatibility: MSSQL vs PostgreSQL
+
+**Rule:** All SQL must work on BOTH databases. Prefer OData/DataService over raw SQL.
+
+## String Operations
+
+| Operation | MSSQL | PostgreSQL | Safe |
+|-----------|-------|------------|------|
+| Concatenate | `'a' + 'b'` | `'a' \|\| 'b'` | `CONCAT('a', 'b')` |
+| Length | `LEN(col)` | `LENGTH(col)` | `CHAR_LENGTH(col)` |
+| Find | `CHARINDEX('x', col)` | `POSITION('x' IN col)` | — |
+| Substring | `SUBSTRING(col, 1, 5)` | `SUBSTRING(col, 1, 5)` | Same ✓ |
+| Upper/Lower | `UPPER(col)` | `UPPER(col)` | Same ✓ |
+| Trim | `LTRIM(RTRIM(col))` | `TRIM(col)` | `TRIM(col)` (MSSQL 2017+) |
+
+## Row Limiting
+
+```sql
+-- MSSQL only
+SELECT TOP 10 * FROM Contact
+
+-- PostgreSQL only
+SELECT * FROM Contact LIMIT 10
+
+-- SAFE: Use OData
+GET /0/odata/Contact?$top=10
+```
+
+## Date/Time
+
+| Operation | MSSQL | PostgreSQL | Safe |
+|-----------|-------|------------|------|
+| Current timestamp | `GETDATE()` | `NOW()` | `CURRENT_TIMESTAMP` |
+| Date add | `DATEADD(day, 7, col)` | `col + INTERVAL '7 days'` | — |
+| Date diff | `DATEDIFF(day, a, b)` | `b - a` | — |
+| Extract part | `DATEPART(year, col)` | `EXTRACT(YEAR FROM col)` | `EXTRACT(YEAR FROM col)` |
+
+## UUID Generation
+
+```sql
+-- MSSQL
+SELECT NEWID()
+
+-- PostgreSQL
+SELECT gen_random_uuid()
+```
+
+## Boolean Values
+
+```sql
+-- MSSQL (BIT type)
+WHERE IsActive = 1
+
+-- PostgreSQL (BOOLEAN type)
+WHERE IsActive = true
+
+-- SAFE
+WHERE IsActive = 1  -- works on both with implicit conversion in most cases
+```
+
+## Type Casting
+
+```sql
+-- MSSQL
+CAST(col AS NVARCHAR(100))
+
+-- PostgreSQL
+CAST(col AS VARCHAR(100))
+col::VARCHAR(100)
+
+-- SAFE
+CAST(col AS VARCHAR(100))
+```
+
+## Schema/Catalog
+
+```sql
+-- MSSQL: uses dbo schema
+SELECT * FROM dbo.Contact
+
+-- PostgreSQL: uses public schema
+SELECT * FROM public."Contact"
+
+-- Creatio abstracts this — use entity names without schema prefix
+```
+
+## Recommendation Priority
+
+1. **OData 4 API** (`/0/odata/`) — cross-DB, strongly typed, no SQL
+2. **DataService API** (`/0/DataService/json/reply/`) — cross-DB, Creatio-native
+3. **Parameterized SQL** via clio — last resort, must test on both DBs
+
+## Common Safe SQL Patterns
+
+```sql
+-- Safe aggregations
+SELECT COUNT(*), SUM(Amount), AVG(Amount) FROM "UsrOrder"
+
+-- Safe joins
+SELECT c."Name", a."Name" AS AccountName
+FROM "Contact" c
+INNER JOIN "Account" a ON c."AccountId" = a."Id"
+
+-- Safe WHERE clauses
+WHERE "CreatedOn" >= CURRENT_TIMESTAMP - INTERVAL '30' DAY
+AND "Name" IS NOT NULL
+```

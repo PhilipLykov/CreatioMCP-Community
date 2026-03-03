@@ -1,0 +1,78 @@
+# Naming Conventions
+
+## Prefix Rule
+ALL custom elements MUST use `Usr` prefix (or your registered Creatio Marketplace vendor prefix).
+
+## Entity Schemas
+
+| Element | Pattern | Example |
+|---------|---------|---------|
+| Entity name | `Usr` + PascalCase noun | `UsrVacationRequest` |
+| Column name | `Usr` + PascalCase | `UsrStartDate` |
+| Lookup entity | `Usr` + PascalCase | `UsrVacationStatus` |
+| Lookup column | `Usr` + Referenced entity | `UsrVacationStatus` → creates `UsrVacationStatusId` FK |
+
+## Client Module Schemas
+
+| Element | Pattern | Example |
+|---------|---------|---------|
+| Form page | `{Entity}_FormPage` | `UsrVacationRequest_FormPage` |
+| Section page | `{Entity}_ListPage` | `UsrVacationRequest_ListPage` |
+| Replacing module | Same name as target | `ContactPageV2` (in your package) |
+| Mini page | `{Entity}_MiniPage` | `UsrVacationRequest_MiniPage` |
+
+## viewConfigDiff Element Names
+
+| Element | Pattern | Example |
+|---------|---------|---------|
+| Input field | `Usr{Column}Input` | `UsrNameInput` |
+| ComboBox | `Usr{Column}ComboBox` | `UsrStatusComboBox` |
+| Container | `Usr{Purpose}Container` | `UsrGeneralInfoContainer` |
+| Button | `Usr{Action}Button` | `UsrCalculateButton` |
+| Tab | `Usr{Name}Tab` | `UsrDetailsTab` |
+| DataGrid | `Usr{Entity}Grid` | `UsrOrderLinesGrid` |
+
+## ViewModel Attributes
+
+| Element | Pattern | Example |
+|---------|---------|---------|
+| Visibility flag | `Is{Element}Visible` | `IsReasonVisible` |
+| Readonly flag | `Is{Element}Locked` | `IsFormLocked` |
+| Computed value | `Calculated{Name}` | `CalculatedTotal` |
+
+## Handler Requests
+
+| Element | Pattern | Example |
+|---------|---------|---------|
+| Custom request | `usr.{Action}Request` | `usr.CalculateTotalRequest` |
+| System requests | `crt.{Name}Request` | `crt.SaveRecordRequest` |
+
+## Package Naming
+
+| Element | Pattern | Example |
+|---------|---------|---------|
+| Package name | `Usr{AppName}` | `UsrVacationManagement` |
+| Package version | `X.Y.Z` | `1.0.0` |
+
+## SQL Objects
+
+| Element | Pattern | Example |
+|---------|---------|---------|
+| View | `Usr{Purpose}View` | `UsrActiveVacationsView` |
+| Stored procedure | `Usr{Action}` | `UsrCalculateBalance` |
+
+## What NOT to Name
+
+```
+BAD:  VacationRequest         → missing prefix
+BAD:  usr_vacation_request    → snake_case, lowercase prefix
+BAD:  USR_VACATION            → SCREAMING_CASE
+BAD:  usrVacationRequest      → camelCase prefix
+GOOD: UsrVacationRequest      → PascalCase with Usr prefix
+```
+
+## Preinstalled Names — Never Use
+
+Never create custom schemas with names that match preinstalled schemas:
+- `Contact`, `Account`, `Activity`, `Order` — these exist already
+- Instead: `UsrCustomContact`, or use REPLACING schema to extend existing

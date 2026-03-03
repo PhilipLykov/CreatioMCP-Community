@@ -1,0 +1,98 @@
+---
+description: Freedom UI development patterns and component mapping
+globs: "**/*.js"
+alwaysApply: false
+---
+
+# Freedom UI Development
+
+## DataValueType to Component Mapping
+
+| DataValueType | Component | Notes |
+|---|---|---|
+| Text (1) | `crt.Input` | Single-line text |
+| Integer (4) | `crt.NumberInput` | Integer mode |
+| Float (5) | `crt.NumberInput` | Decimal mode |
+| Money (6) | `crt.NumberInput` | Currency formatting |
+| DateTime (7) | `crt.DateTimePicker` | Date + time |
+| Date (8) | `crt.DatePicker` | Date only |
+| Lookup (10) | `crt.ComboBox` | Foreign key reference |
+| Boolean (12) | `crt.Checkbox` | True/false toggle |
+| Enum (13) | `crt.ComboBox` | Enumeration dropdown |
+| MaxSizeText | `crt.TextArea` | Multi-line text |
+
+## Layout Components
+
+| Component | Purpose | Key Properties |
+|---|---|---|
+| `crt.FlexContainer` | Flex layout | `direction`, `gap`, `justifyContent`, `alignItems` |
+| `crt.GridContainer` | CSS Grid | `columns` (e.g. `["1fr","1fr"]`), `gap` |
+| `crt.TabPanel` | Tabs | `tabs: [{ caption, items }]` |
+| `crt.ExpansionPanel` | Collapsible | `title`, `expanded`, `toggleType` |
+
+## Display Components
+
+| Component | Purpose | Key Properties |
+|---|---|---|
+| `crt.Label` | Static text | `caption` |
+| `crt.Button` | Action button | `caption`, `color`, `size`, `clicked` |
+| `crt.DataGrid` | Table/list | `columns`, `editable`, `rowToolbar` |
+
+## Data Binding
+
+- Entity column: `"$PDS.ColumnName"`
+- ViewModel attribute: `"$AttributeName"`
+- Converter: `"$PDS.ColumnName | crt.ToBoolean"`
+
+## viewConfigDiff Operations
+
+| Operation | Purpose | Required Fields |
+|---|---|---|
+| `insert` | Add element | `name`, `parentName`, `propertyName`, `values` |
+| `merge` | Update existing | `name`, `values` |
+| `remove` | Delete element | `name` |
+| `move` | Relocate | `name`, `parentName`, `propertyName`, `index` |
+
+## Handler Request Types
+
+| Request | When Triggered |
+|---|---|
+| `crt.HandleViewModelInitRequest` | Page initialization |
+| `crt.HandleViewModelAttributeChangeRequest` | Attribute value changed |
+| `crt.SaveRecordRequest` | Before/after save |
+| `crt.HandleViewModelDestroyRequest` | Page closing |
+| `crt.OpenPageRequest` | Navigate to another page |
+
+**CRITICAL**: Every handler MUST end with `return next?.handle(request)`.
+
+## Page Container Hierarchy
+
+`MainHeader` > `MainContainer` > `CardContentWrapper` > `SectionContentWrapper`
+
+Place custom components inside `SectionContentWrapper` by default.
+
+## Schema Token Comments (MANDATORY)
+
+Every Freedom UI page schema MUST include these markers:
+- `/**SCHEMA_VIEW_CONFIG_DIFF*/`
+- `/**SCHEMA_MODEL_CONFIG_DIFF*/`
+- `/**SCHEMA_VIEW_MODEL_CONFIG*/`
+- `/**SCHEMA_VALIDATORS*/`
+- `/**SCHEMA_CONVERTERS*/`
+- `/**SCHEMA_HANDLERS*/`
+
+Without these, the Creatio Designer cannot parse the schema.
+
+## Guided Prompts
+
+Use these prompts for guided Academy-backed development:
+- `creatio_create_freedom_ui_page` — generate a complete page
+- `creatio_modify_page` — modify an existing page
+- `creatio_add_business_rule` — add visibility/required/readonly rules
+- `creatio_create_dashboard` — create analytics dashboard
+- `creatio_add_detail` — add a detail grid to a page
+- `creatio_write_handler` — generate a handler with verified patterns
+
+## Post-Change Deployment
+
+After any UI change: `creatio_compile` > `creatio_flush_cache` > Refresh browser

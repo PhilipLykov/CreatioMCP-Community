@@ -1,0 +1,91 @@
+# Deployment Workflow
+
+## After Schema Changes (Client Module, Source Code)
+
+```
+1. Compile    → clio compile -e EnvName
+2. Flush      → clio flush-db -e EnvName
+3. Restart    → clio restart -e EnvName  (if C# changes)
+4. Verify     → refresh browser
+```
+
+## After Entity Changes (Object Schema)
+
+```
+1. Compile    → clio compile -e EnvName
+2. Restart    → clio restart -e EnvName
+3. Flush      → clio flush-db -e EnvName
+4. Verify     → check DB table created/altered
+```
+
+Order matters: entity changes need restart BEFORE cache flush.
+
+## After SQL Script Changes
+
+```
+1. Execute    → clio sql -f script.sql -e EnvName
+2. Flush      → clio flush-db -e EnvName
+3. Verify     → query results
+```
+
+## Package Upload
+
+```
+1. Push       → clio push-pkg ./PackagePath -e EnvName
+2. Compile    → clio compile -e EnvName
+3. Restart    → clio restart -e EnvName
+4. Flush      → clio flush-db -e EnvName
+```
+
+## Application Install
+
+```
+1. Install    → clio install-application ./app.zip -e EnvName
+2. Restart    → clio restart -e EnvName
+3. Flush      → clio flush-db -e EnvName
+```
+
+## Version Format
+
+`X.Y.Z` — semantic versioning
+- **X** (major): breaking changes, new entity schemas
+- **Y** (minor): new features, new pages, new columns
+- **Z** (patch): bug fixes, label changes
+
+Set version: `clio set-pkg-version PackageName X.Y.Z -e EnvName`
+
+## Pre-Deployment Checklist
+
+- [ ] All token comments present in client modules
+- [ ] Handler chains call `next?.handle(request)`
+- [ ] SQL tested on both MSSQL and PostgreSQL
+- [ ] No hardcoded GUIDs
+- [ ] `Usr` prefix on all custom elements
+- [ ] Package dependencies declared in `descriptor.json`
+- [ ] Seed data included for new lookup entities
+- [ ] Version number incremented
+
+## Environment Promotion
+
+```
+Development → Staging → Production
+
+1. Export: clio pull-pkg PackageName -e Dev -d ./export/
+2. Test:   clio push-pkg ./export/PackageName -e Staging
+           clio compile -e Staging
+           → run validation tests
+3. Deploy: clio push-pkg ./export/PackageName -e Production
+           clio compile -e Production
+           clio restart -e Production
+           clio flush-db -e Production
+```
+
+## Troubleshooting
+
+| Symptom | Solution |
+|---------|----------|
+| Changes not visible | Flush cache + refresh browser |
+| Compilation error | Check schema syntax, token comments |
+| Entity table missing | Restart after compile |
+| Old cached data | `clio flush-db -e EnvName` |
+| Package locked | `clio unlock-pkg PackageName -e EnvName` |

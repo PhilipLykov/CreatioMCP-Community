@@ -1,0 +1,81 @@
+---
+description: Deployment and CI/CD workflow rules for Creatio
+alwaysApply: true
+---
+
+# Creatio Deployment & CI/CD Rules
+
+## Post-Change Workflow (MANDATORY)
+
+**After schema changes (pages, sections, details):**
+1. `creatio_compile` → `creatio_flush_cache` → Refresh browser
+2. If behavior is stale → `creatio_restart`
+
+**After entity/object changes (columns, indexes):**
+1. `creatio_compile` → `creatio_restart` → `creatio_flush_cache`
+
+**After installing packages:**
+1. `creatio_compile` → `creatio_restart` → `creatio_flush_cache` → Verify with `creatio_health_check`
+
+ALWAYS compile before testing any change.
+
+## CI/CD Pipeline Standard Sequence
+
+Use `creatio_get_deployment_plan` for a full plan. The standard sequence:
+
+1. `creatio_health_check` — verify target is healthy
+2. `creatio_validate_deployment` — check packages, naming, dependencies
+3. `creatio_list_packages` — record current versions (rollback reference)
+4. Deploy packages (in dependency order)
+5. `creatio_compile` — compile all configuration
+6. `creatio_flush_cache` — clear Redis cache
+7. `creatio_restart` — restart application
+8. `creatio_health_check` — verify health after deployment
+9. Smoke test — query key entity to verify
+
+## Clio CLI Commands
+
+```bash
+clio reg-web-app "env" -u $URL -l $LOGIN -p $PASS
+clio install-gate -e env
+clio push-pkg ./Package -e env
+clio compile -e env
+clio flush-db -e env
+clio restart -e env
+clio ping -e env
+```
+
+## Package Dependency Order
+
+- Packages install in dependency order — dependencies MUST be installed first
+- Declare all required packages in `DependsOn` section
+- Circular dependencies are forbidden
+- Use `creatio_list_packages` to verify dependencies exist on target
+
+## Versioning
+
+- Semantic versioning: `X.Y.Z`
+  - **X** — breaking / major
+  - **Y** — features, backward-compatible
+  - **Z** — bug fixes, patches
+- Increment version before each release
+
+## Pre-Release Checklist
+
+- [ ] `creatio_compile` succeeds with zero errors
+- [ ] All schemas use `Usr` prefix (or registered prefix)
+- [ ] Tested on MS SQL Server
+- [ ] Tested on PostgreSQL
+- [ ] No hardcoded URLs or credentials
+- [ ] Package descriptor lists all dependencies
+- [ ] Version incremented
+- [ ] `creatio_validate_deployment` passes
+
+## Deployment Troubleshooting
+
+If deployment fails, use the `creatio_troubleshoot_deployment` prompt with the error message.
+Common issues:
+- **Compilation error**: Missing dependency, naming conflict, cross-DB SQL
+- **Import error**: Package locked, version conflict, missing dependencies
+- **Stale UI**: Flush cache + Ctrl+Shift+R in browser
+- **Handler errors**: Missing `return next?.handle(request)` in handler chain

@@ -1,0 +1,166 @@
+# Business Rules Implementation
+
+All business rules are implemented via handlers in Freedom UI.
+
+## Rule Types
+
+### 1. Visibility Rule
+Show/hide a field based on another field's value.
+
+**viewConfigDiff:**
+```json
+{
+    "operation": "merge",
+    "name": "UsrReasonInput",
+    "values": { "visible": "$IsReasonVisible" }
+}
+```
+
+**viewModelConfigDiff:**
+```javascript
+"attributes": {
+    "IsReasonVisible": { "value": false }
+}
+```
+
+**Handler:**
+```javascript
+{
+    request: "crt.HandleViewModelAttributeChangeRequest",
+    handler: async (request, next) => {
+        if (request.attributeName === "PDS.UsrStatus") {
+            const status = await request.$context.PDS.UsrStatus;
+            request.$context.IsReasonVisible =
+                status?.displayValue === "Rejected";
+        }
+        await next?.handle(request);
+    }
+}
+```
+
+### 2. Required Rule
+Make a field conditionally required.
+
+**viewModelConfigDiff:**
+```javascript
+"attributes": {
+    "UsrReason": {
+        "modelConfig": { "path": "PDS.UsrReason" },
+        "validators": {
+            "required": {
+                "type": "crt.Required",
+                "params": { "message": "Reason is required when rejected" }
+            }
+        }
+    }
+}
+```
+
+### 3. Readonly Rule
+Lock a field based on condition.
+
+**viewConfigDiff:**
+```json
+{
+    "operation": "merge",
+    "name": "UsrNameInput",
+    "values": { "readonly": "$IsNameLocked" }
+}
+```
+
+**Handler:**
+```javascript
+{
+    request: "crt.HandleViewModelInitRequest",
+    handler: async (request, next) => {
+        const status = await request.$context.PDS.UsrStatus;
+        request.$context.IsNameLocked =
+            status?.displayValue === "Approved";
+        await next?.handle(request);
+    }
+}
+```
+
+### 4. Filter Rule
+Filter a lookup dropdown based on another field.
+
+```javascript
+{
+    request: "crt.HandleViewModelAttributeChangeRequest",
+    handler: async (request, next) => {
+        if (request.attributeName === "PDS.UsrCategory") {
+            const category = await request.$context.PDS.UsrCategory;
+            // Modify data source filter for subcategory lookup
+        }
+        await next?.handle(request);
+    }
+}
+```
+
+### 5. Auto-Calculate
+Compute a field value from other fields.
+
+```javascript
+{
+    request: "crt.HandleViewModelAttributeChangeRequest",
+    handler: async (request, next) => {
+        if (request.attributeName === "PDS.UsrQuantity" ||
+            request.attributeName === "PDS.UsrUnitPrice") {
+            const qty = await request.$context.PDS.UsrQuantity || 0;
+            const price = await request.$context.PDS.UsrUnitPrice || 0;
+            request.$context.PDS.UsrTotalAmount = qty * price;
+        }
+        await next?.handle(request);
+    }
+}
+```
+
+### 6. Set Value
+Set a field to a specific value when a condition is met.
+
+```javascript
+{
+    request: "crt.HandleViewModelAttributeChangeRequest",
+    handler: async (request, next) => {
+        if (request.attributeName === "PDS.UsrType") {
+            const typeVal = await request.$context.PDS.UsrType;
+            if (typeVal?.displayValue === "Urgent") {
+                request.$context.PDS.UsrPriority = {
+                    value: "high-priority-guid",
+                    displayValue: "High"
+                };
+            }
+        }
+        await next?.handle(request);
+    }
+}
+```
+
+## Pattern: Combining Multiple Rules
+
+```javascript
+handlers: /**SCHEMA_HANDLERS*/[
+    {
+        request: "crt.HandleViewModelInitRequest",
+        handler: async (request, next) => {
+            const status = await request.$context.PDS.UsrStatus;
+            const isClosed = status?.displayValue === "Closed";
+            request.$context.IsFormReadonly = isClosed;
+            request.$context.IsSaveVisible = !isClosed;
+            await next?.handle(request);
+        }
+    },
+    {
+        request: "crt.HandleViewModelAttributeChangeRequest",
+        handler: async (request, next) => {
+            if (request.attributeName === "PDS.UsrAmount") {
+                const amount = await request.$context.PDS.UsrAmount || 0;
+                request.$context.PDS.UsrTax = amount * 0.2;
+                request.$context.PDS.UsrTotal = amount * 1.2;
+                request.$context.IsHighValue = amount > 10000;
+            }
+            await next?.handle(request);
+        }
+    }
+]/**SCHEMA_HANDLERS*/
+```

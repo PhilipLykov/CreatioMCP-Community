@@ -1,0 +1,23 @@
+{
+  "name": "creatio-academy-scraper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Crawls Creatio Academy docs, extracts code examples and sections into a SQLite knowledge DB for machine teaching",
+  "type": "module",
+  "scripts": {
+    "scrape": "tsx scrape.ts",
+    "scrape:incremental": "tsx scrape.ts --incremental",
+    "search": "tsx search-cli.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/turndown": "^5.0.6",
+    "better-sqlite3": "^12.6.2",
+    "crawlee": "^3.16.0",
+    "playwright": "^1.58.2",
+    "tsx": "^4.21.0",
+    "turndown": "^7.2.2",
+    "typescript": "^5.9.3"
+  }
+}

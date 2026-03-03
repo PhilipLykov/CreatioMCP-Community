@@ -1,0 +1,209 @@
+# Creatio UI Component Catalog
+
+## DataValueType → Component Mapping
+
+| DataValueType | Component | Notes |
+|---------------|-----------|-------|
+| Text | `crt.Input` | Single-line, default |
+| ShortText | `crt.Input` | ≤50 chars |
+| MediumText | `crt.Input` | ≤250 chars |
+| LongText | `crt.TextArea` | Multi-line |
+| MaxSizeText | `crt.TextArea` | Unlimited |
+| RichText | `crt.RichTextEditor` | HTML content |
+| Integer | `crt.NumberInput` | Whole numbers |
+| Float | `crt.NumberInput` | Decimals |
+| Money | `crt.NumberInput` | `decimalPrecision: 2` |
+| Date | `crt.DateTimePicker` | Date only |
+| Time | `crt.DateTimePicker` | Time only |
+| DateTime | `crt.DateTimePicker` | Date + time |
+| Boolean | `crt.Checkbox` | True/false |
+| Lookup | `crt.ComboBox` | Foreign key dropdown |
+| Guid | `crt.Input` | Usually hidden |
+| Image | `crt.ImageInput` | Image upload |
+| File | `crt.FileInput` | File attachment |
+
+## Input Components
+
+### crt.Input
+```json
+{
+  "type": "crt.Input",
+  "label": "Name",
+  "control": "$PDS.UsrName",
+  "placeholder": "Enter name...",
+  "readonly": false,
+  "visible": true,
+  "labelPosition": "auto"
+}
+```
+
+### crt.NumberInput
+```json
+{
+  "type": "crt.NumberInput",
+  "label": "Amount",
+  "control": "$PDS.UsrAmount",
+  "min": 0,
+  "max": 999999,
+  "decimalPrecision": 2
+}
+```
+
+### crt.DateTimePicker
+```json
+{
+  "type": "crt.DateTimePicker",
+  "label": "Start Date",
+  "control": "$PDS.UsrStartDate"
+}
+```
+
+### crt.ComboBox (Lookup)
+```json
+{
+  "type": "crt.ComboBox",
+  "label": "Status",
+  "control": "$PDS.UsrStatus",
+  "placeholder": "Select..."
+}
+```
+
+### crt.Checkbox
+```json
+{
+  "type": "crt.Checkbox",
+  "label": "Is Active",
+  "control": "$PDS.UsrIsActive"
+}
+```
+
+### crt.TextArea
+```json
+{
+  "type": "crt.TextArea",
+  "label": "Notes",
+  "control": "$PDS.UsrNotes",
+  "rows": 5
+}
+```
+
+### crt.RichTextEditor
+```json
+{
+  "type": "crt.RichTextEditor",
+  "label": "Description",
+  "control": "$PDS.UsrDescription"
+}
+```
+
+### crt.ImageInput
+```json
+{
+  "type": "crt.ImageInput",
+  "label": "Photo",
+  "control": "$PDS.UsrPhoto"
+}
+```
+
+### crt.FileInput
+```json
+{
+  "type": "crt.FileInput",
+  "label": "Attachment",
+  "control": "$PDS.UsrAttachment"
+}
+```
+
+## Layout Components
+
+### crt.FlexContainer
+```json
+{
+  "type": "crt.FlexContainer",
+  "direction": "row",
+  "gap": "medium",
+  "justifyContent": "start",
+  "alignItems": "stretch",
+  "items": []
+}
+```
+
+### crt.GridContainer
+```json
+{
+  "type": "crt.GridContainer",
+  "columns": ["1fr", "1fr"],
+  "gap": "medium",
+  "items": []
+}
+```
+
+### crt.TabPanel
+```json
+{
+  "type": "crt.TabPanel",
+  "tabs": [
+    { "caption": "General", "items": [] },
+    { "caption": "Details", "items": [] }
+  ]
+}
+```
+
+### crt.ExpansionPanel
+```json
+{
+  "type": "crt.ExpansionPanel",
+  "title": "Additional Info",
+  "expanded": false,
+  "items": []
+}
+```
+
+## Display Components
+
+### crt.Button
+```json
+{
+  "type": "crt.Button",
+  "caption": "Save",
+  "color": "primary",
+  "size": "large",
+  "clicked": { "request": "crt.SaveRecordRequest" }
+}
+```
+
+### crt.Label
+```json
+{
+  "type": "crt.Label",
+  "caption": "Section Title"
+}
+```
+
+### crt.DataGrid
+```json
+{
+  "type": "crt.DataGrid",
+  "columns": [
+    { "code": "UsrName", "caption": "Name", "width": "200px" },
+    { "code": "UsrStatus", "caption": "Status", "width": "150px" }
+  ],
+  "editable": false,
+  "rowToolbar": true
+}
+```
+
+## Chart Components (Dashboards)
+
+| Component | Type |
+|-----------|------|
+| Spline | `crt.SplineChart` |
+| Line | `crt.LineChart` |
+| Bar | `crt.BarChart` |
+| Column | `crt.ColumnChart` |
+| Doughnut | `crt.DoughnutChart` |
+| Area | `crt.AreaChart` |
+| Scatter | `crt.ScatterChart` |
+| Pipeline | `crt.PipelineChart` |
+| Metric | `crt.Metric` |
+| Gauge | `crt.Gauge` |

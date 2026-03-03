@@ -1,0 +1,127 @@
+# Entity Schema Reference
+
+An Entity (Object) schema creates both an ORM model class and a database table.
+
+## Built-in Columns (Inherited)
+
+Every entity inherits these from `BaseEntity`:
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| `Id` | Guid | Primary key (auto-generated UUID) |
+| `CreatedOn` | DateTime | Record creation timestamp |
+| `CreatedBy` | Lookup → Contact | Creator |
+| `ModifiedOn` | DateTime | Last modification timestamp |
+| `ModifiedBy` | Lookup → Contact | Last modifier |
+| `ProcessListeners` | Integer | Process subscription count |
+
+## Common Parent Schemas
+
+| Parent | Extra Columns | Use |
+|--------|---------------|-----|
+| `BaseEntity` | Id, Created/Modified audit | Standard entities |
+| `BaseLookup` | + Name, Description | Lookup/reference tables |
+| `BaseCodeLookup` | + Name, Description, Code | Coded lookups |
+
+## Column Types (DataValueType)
+
+| DataValueType | DB Type (MSSQL) | DB Type (PostgreSQL) |
+|---------------|-----------------|---------------------|
+| Guid | uniqueidentifier | uuid |
+| Text/ShortText | nvarchar(50) | character varying(50) |
+| MediumText | nvarchar(250) | character varying(250) |
+| LongText | nvarchar(500) | character varying(500) |
+| MaxSizeText | nvarchar(max) | text |
+| Integer | int | integer |
+| Float | float | double precision |
+| Money | decimal(18,2) | numeric(18,2) |
+| Boolean | bit | boolean |
+| Date | date | date |
+| Time | time | time |
+| DateTime | datetime2 | timestamp |
+| Lookup | uniqueidentifier (FK) | uuid (FK) |
+| Image | uniqueidentifier → SysImage | uuid → SysImage |
+
+## Relationships
+
+### Lookup (Many-to-One)
+Column with `DataValueType: Lookup` + `referenceSchemaName`.
+Creates a foreign key to the referenced entity's `Id`.
+
+```
+UsrOrder.UsrStatusId → UsrOrderStatus.Id
+```
+
+### Detail (One-to-Many)
+No column on parent. Child entity has a lookup column pointing back.
+
+```
+UsrOrderLine.UsrOrderId → UsrOrder.Id
+```
+
+## Naming Conventions
+
+- Prefix: `Usr` (or registered vendor prefix)
+- Case: PascalCase
+- Entity: `UsrVacationRequest`
+- Columns: `UsrStartDate`, `UsrEmployeeId`, `UsrStatus`
+- Lookup entity: `UsrVacationStatus` (inherits `BaseLookup`)
+
+## Entity Schema JSON Structure
+
+```json
+{
+  "name": "UsrVacationRequest",
+  "caption": "Vacation request",
+  "parentSchemaName": "BaseEntity",
+  "columns": [
+    {
+      "name": "UsrName",
+      "caption": "Name",
+      "dataValueType": "MediumText",
+      "isRequired": true
+    },
+    {
+      "name": "UsrEmployee",
+      "caption": "Employee",
+      "dataValueType": "Lookup",
+      "referenceSchemaName": "Contact",
+      "isRequired": true
+    },
+    {
+      "name": "UsrStartDate",
+      "caption": "Start date",
+      "dataValueType": "Date",
+      "isRequired": true
+    },
+    {
+      "name": "UsrEndDate",
+      "caption": "End date",
+      "dataValueType": "Date",
+      "isRequired": true
+    },
+    {
+      "name": "UsrStatus",
+      "caption": "Status",
+      "dataValueType": "Lookup",
+      "referenceSchemaName": "UsrVacationStatus"
+    },
+    {
+      "name": "UsrNotes",
+      "caption": "Notes",
+      "dataValueType": "MaxSizeText"
+    }
+  ]
+}
+```
+
+## System Metadata Tables
+
+| Table | Purpose |
+|-------|---------|
+| `SysPackage` | Installed packages |
+| `SysSchema` | All schema metadata |
+| `SysSettings` | System settings key-value |
+| `SysAdminUnit` | Users and roles |
+| `SysEntitySchemaOperationRight` | Object-level permissions |
+| `SysEntitySchemaColumnRight` | Column-level permissions |

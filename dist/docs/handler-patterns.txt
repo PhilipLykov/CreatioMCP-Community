@@ -1,0 +1,136 @@
+# Handler Patterns Reference
+
+All handlers MUST call `await next?.handle(request)` to preserve the chain.
+
+## Init Handler
+Runs once when page loads. Use for: initial calculations, loading extra data, setting defaults.
+
+```javascript
+{
+    request: "crt.HandleViewModelInitRequest",
+    handler: async (request, next) => {
+        const statusValue = await request.$context.PDS.UsrStatus;
+        request.$context.IsEditable = statusValue?.displayValue !== "Closed";
+        await next?.handle(request);
+    }
+}
+```
+
+## Attribute Change Handler
+Runs when any bound attribute changes. Always check `request.attributeName`.
+
+```javascript
+{
+    request: "crt.HandleViewModelAttributeChangeRequest",
+    handler: async (request, next) => {
+        if (request.attributeName === "PDS.UsrType") {
+            const typeValue = await request.$context.PDS.UsrType;
+            // Visibility rule
+            request.$context.IsVacationFieldVisible =
+                typeValue?.displayValue === "Vacation";
+            // Auto-calculate
+            request.$context.PDS.UsrCategory = typeValue?.value;
+        }
+        await next?.handle(request);
+    }
+}
+```
+
+### Multiple Attribute Watches
+```javascript
+{
+    request: "crt.HandleViewModelAttributeChangeRequest",
+    handler: async (request, next) => {
+        if (request.attributeName === "PDS.UsrQuantity" ||
+            request.attributeName === "PDS.UsrPrice") {
+            const qty = await request.$context.PDS.UsrQuantity;
+            const price = await request.$context.PDS.UsrPrice;
+            request.$context.PDS.UsrTotal = (qty || 0) * (price || 0);
+        }
+        await next?.handle(request);
+    }
+}
+```
+
+## Save Handler
+Runs before record save. Use for: pre-save validation, post-save actions.
+
+```javascript
+{
+    request: "crt.SaveRecordRequest",
+    handler: async (request, next) => {
+        const name = await request.$context.PDS.UsrName;
+        if (!name || name.trim() === "") {
+            request.$context.showWarningDialog("Name is required");
+            return;
+        }
+        await next?.handle(request);
+    }
+}
+```
+
+## Destroy Handler
+Runs when page is destroyed. Use for: cleanup, unsubscribing.
+
+```javascript
+{
+    request: "crt.HandleViewModelDestroyRequest",
+    handler: async (request, next) => {
+        // Cleanup logic here
+        await next?.handle(request);
+    }
+}
+```
+
+## Open Page Handler
+Navigate to another page programmatically.
+
+```javascript
+{
+    request: "crt.OpenPageRequest",
+    handler: async (request, next) => {
+        if (request.schemaName === "UsrTargetPage_FormPage") {
+            request.recordId = someRecordId;
+        }
+        await next?.handle(request);
+    }
+}
+```
+
+## Custom Request Handler
+Define and handle custom requests for reusable logic.
+
+```javascript
+// Handler definition
+{
+    request: "usr.CalculateTotalRequest",
+    handler: async (request, next) => {
+        const subtotal = await request.$context.PDS.UsrSubtotal;
+        const tax = subtotal * 0.2;
+        request.$context.PDS.UsrTax = tax;
+        request.$context.PDS.UsrTotal = subtotal + tax;
+        await next?.handle(request);
+    }
+}
+```
+
+Trigger from button:
+```json
+{
+    "type": "crt.Button",
+    "caption": "Calculate",
+    "clicked": { "request": "usr.CalculateTotalRequest" }
+}
+```
+
+## Handler Request Types Summary
+
+| Request | Trigger |
+|---------|---------|
+| `crt.HandleViewModelInitRequest` | Page load |
+| `crt.HandleViewModelAttributeChangeRequest` | Field value change |
+| `crt.SaveRecordRequest` | Record save |
+| `crt.HandleViewModelDestroyRequest` | Page close |
+| `crt.OpenPageRequest` | Page navigation |
+| `crt.HandleStageChangeRequest` | Pipeline stage change |
+| `usr.*` | Custom (user-defined) |
