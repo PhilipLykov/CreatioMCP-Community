@@ -50,9 +50,15 @@ Knowledge-assisted implementation guidance grounded in practical Creatio develop
 
 ### Installation
 
+1. Download the latest release from [Releases](https://github.com/PhilipLykov/CreatioMCP-Community/releases)
+2. Extract the archive
+3. Open a terminal in the extracted directory and install globally:
+
 ```bash
-npm install -g creatio-mcp-server
+npm install -g .
 ```
+
+This registers the `creatio-mcp-server` command on your system.
 
 ### Setup
 

@@ -19,13 +19,18 @@ node --version
 # Expected: v20.x.x or higher
 ```
 
-## Step 2: Install CreatioMCP
+## Step 2: Download and Install CreatioMCP
 
-Install the package globally via npm:
+1. Go to the [Releases](https://github.com/PhilipLykov/CreatioMCP-Community/releases) page
+2. Download the **Source code** archive (zip or tar.gz) for the latest version
+3. Extract it to a folder on your machine
+4. Open a terminal in the extracted folder and run:
 
 ```bash
-npm install -g creatio-mcp-server
+npm install -g .
 ```
+
+This installs all dependencies and registers the `creatio-mcp-server` command globally.
 
 Verify the installation:
 
