@@ -101,19 +101,23 @@ You should receive a response with the Creatio instance status and latency metri
 
 ## Step 6 (Optional): Set Up Academy Knowledge Base
 
-The Academy knowledge base provides AI-guided Creatio development assistance. To populate it:
+The Academy knowledge base provides AI-guided Creatio development assistance. It is optional but recommended.
+
+1. Download `academy-db.zip` from the [latest release](https://github.com/PhilipLykov/CreatioMCP-Community/releases)
+2. Create a `data` directory next to the installed package (or any location):
 
 ```bash
-cd tools/academy-scraper
-npm install
-npx tsx scrape.ts
+mkdir data
 ```
 
-This creates a local SQLite database. The default path is `./data/academy.db`. To use a custom location:
+3. Extract `academy.db` from the archive into the `data` directory
+4. If using a non-default location, set the environment variable:
 
 ```bash
 set CREATIO_ACADEMY_DB_PATH=C:\path\to\academy.db
 ```
+
+5. Restart the MCP server. Academy search and Cursor rules generation with dynamic knowledge will become available.
 
 ## Environment Variables
 

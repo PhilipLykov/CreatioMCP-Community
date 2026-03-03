@@ -104,15 +104,17 @@ You should see JSON results with Contact records.
 
 ## Optional: Academy Knowledge Base
 
-The Academy knowledge base provides AI-assisted guidance for Creatio development. It is optional and requires a one-time setup:
+The Academy knowledge base provides AI-assisted guidance for Creatio development. It is optional but recommended.
+
+1. Download `academy-db.zip` from the [latest release](https://github.com/PhilipLykov/CreatioMCP-Community/releases)
+2. Extract `academy.db` to the `data/` directory (or any location of your choice)
+3. Set the path if using a non-default location:
 
 ```bash
-cd tools/academy-scraper
-npm install
-npx tsx scrape.ts
+set CREATIO_ACADEMY_DB_PATH=C:\path\to\academy.db
 ```
 
-This creates a local SQLite database with curated Creatio documentation. Without it, Academy search and Academy-backed prompts are unavailable — all other tools work normally.
+Without the Academy database, Academy search and Academy-backed prompts are unavailable — all other tools work normally.
 
 ## Configuration
 
@@ -138,7 +140,7 @@ Confirm login and password. For cookie auth, ensure the user has web UI access. 
 Run `creatio-mcp-server setup` again or use the `creatio_connect` tool with url, login, and password parameters.
 
 ### Academy Search Returns Empty
-The Academy knowledge base is optional. Run the academy scraper to populate the local SQLite database. Without it, Academy search is unavailable but all other tools work normally.
+The Academy knowledge base is optional. Download `academy-db.zip` from the [Releases](https://github.com/PhilipLykov/CreatioMCP-Community/releases) page, extract `academy.db` to the `data/` directory, and restart the server.
 
 ## Upgrade to SMB or Enterprise
 
