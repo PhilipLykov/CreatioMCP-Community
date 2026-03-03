@@ -29,10 +29,10 @@ ALWAYS use security audit tools when the user asks about:
 | When user asks about... | Use this tool |
 |---|---|
 | Password policy, NIST, complexity | `creatio_audit_password_policy` |
-| Session timeout, concurrent sessions | `creatio_audit_session_config` |
+| Session timeout, CSRF enforcement | `creatio_audit_session_config` |
 | Authentication, SSO, LDAP, Forms | `creatio_audit_auth_methods` |
 | HTTP headers, HSTS, CSP, X-Frame | `creatio_audit_security_headers` |
-| Audit log, change log, process log | `creatio_audit_log_config` |
+| Audit log, change log, process log, change tracking entities | `creatio_audit_log_config` |
 
 All SMB tools accept an optional `environment` parameter. They are lightweight (1-2 API requests each).
 

@@ -45,10 +45,10 @@ When reviewing security posture or compliance of a Creatio instance, use the bui
 
 ### Quick Checks (SMB Tier)
 - `creatio_audit_password_policy` — NIST 800-63B / OWASP password benchmarks
-- `creatio_audit_session_config` — session timeout and management
-- `creatio_audit_auth_methods` — Forms/LDAP/SSO detection
+- `creatio_audit_session_config` — session timeout and CSRF enforcement
+- `creatio_audit_auth_methods` — Forms/LDAP/SSO detection (SSO via `SsoIdentityProvider` OData entity)
 - `creatio_audit_security_headers` — HTTP headers vs OWASP guidelines
-- `creatio_audit_log_config` — audit logging status (disabled by default in Creatio!)
+- `creatio_audit_log_config` — audit logging status and change tracking entity coverage (disabled by default in Creatio!)
 
 ### Enterprise Security Assessment
 - `creatio_audit_rbac_model` — full RBAC hierarchy with dangerous operation flags

@@ -17,11 +17,11 @@ ALWAYS use data tools when the user asks about:
 - Updating or modifying existing records
 - Deleting or removing records
 - Running SQL queries or reports
-- OData syntax, $filter, $select, $orderby
+- OData syntax, $filter, $select, $orderby, $expand, $count
 - Data export, data inspection, record counts
 - Bulk operations or batch data retrieval
 
-## Tool Reference — Read Operations (SMB Tier)
+## Tool Reference — Read Operations (Community Tier)
 
 ### Querying and Retrieving Data
 
@@ -38,21 +38,23 @@ The primary tool for reading data from any Creatio entity. Supports full OData 4
 
 | Parameter | Required | Description |
 |---|---|---|
-| `entityName` | Yes | Entity schema name (e.g. `Contact`, `Account`, `Activity`) |
-| `$select` | No | Comma-separated column list (reduces payload, improves performance) |
-| `$filter` | No | OData filter expression |
-| `$orderby` | No | Sort expression (e.g. `CreatedOn desc`) |
-| `$top` | No | Maximum rows to return (default varies, **hard limit: 10000**) |
-| `$skip` | No | Number of rows to skip (for pagination) |
-| `$expand` | No | Expand related entities |
+| `entity` | Yes | Entity schema name (e.g. `Contact`, `Account`, `Activity`) |
+| `select` | No | Comma-separated column list (reduces payload, improves performance) |
+| `filter` | No | OData filter expression |
+| `orderby` | No | Sort expression (e.g. `CreatedOn desc`) |
+| `top` | No | Maximum rows to return (default: 50, hard limit: 10000) |
+| `skip` | No | Number of rows to skip (for pagination) |
+| `expand` | No | Comma-separated navigation properties to expand, e.g. `Contact($select=Name)` |
+| `count` | No | Boolean — include total record count in response (`@odata.count`) |
 | `environment` | No | Target environment name |
 
 **Best Practices:**
-- ALWAYS use `$select` to request only the columns you need
-- ALWAYS use `$top` to limit result sets — never fetch unbounded data
-- Use `$filter` to narrow results server-side, not client-side
-- For large datasets, paginate with `$skip` and `$top` combined
-- The hard limit of 10000 rows per request cannot be exceeded
+- ALWAYS use `select` to request only the columns you need
+- ALWAYS use `top` to limit result sets — never fetch unbounded data
+- Use `filter` to narrow results server-side, not client-side
+- For large datasets, paginate with `skip` and `top` combined
+- Use `expand` with `$select` inside to get related records in one request
+- Use `count: true` to get a total count alongside paginated results
 
 ### `creatio_get_record` — Get by GUID
 
@@ -62,9 +64,10 @@ Retrieves a single record by its unique identifier.
 
 | Parameter | Required | Description |
 |---|---|---|
-| `entityName` | Yes | Entity schema name |
-| `recordId` | Yes | GUID of the record |
-| `$select` | No | Comma-separated column list |
+| `entity` | Yes | Entity schema name |
+| `id` | Yes | GUID of the record |
+| `select` | No | Comma-separated column list |
+| `expand` | No | Comma-separated navigation properties to expand |
 | `environment` | No | Target environment name |
 
 Use this when you already know the record's GUID. Faster and more efficient than `creatio_query_data` with a filter on `Id`.
@@ -75,38 +78,38 @@ Use this when you already know the record's GUID. Faster and more efficient than
 
 | Operator | Example |
 |---|---|
-| `eq` (equals) | `$filter=Name eq 'John'` |
-| `ne` (not equals) | `$filter=Type ne 'Internal'` |
-| `gt` (greater than) | `$filter=Age gt 30` |
-| `ge` (greater or equal) | `$filter=CreatedOn ge 2024-01-01T00:00:00Z` |
-| `lt` (less than) | `$filter=Amount lt 1000` |
-| `le` (less or equal) | `$filter=DueDate le 2024-12-31T00:00:00Z` |
+| `eq` (equals) | `Name eq 'John'` |
+| `ne` (not equals) | `Type ne 'Internal'` |
+| `gt` (greater than) | `Age gt 30` |
+| `ge` (greater or equal) | `CreatedOn ge 2024-01-01T00:00:00Z` |
+| `lt` (less than) | `Amount lt 1000` |
+| `le` (less or equal) | `DueDate le 2024-12-31T00:00:00Z` |
 
 ### Logical Operators
 
 | Operator | Example |
 |---|---|
-| `and` | `$filter=Age gt 18 and Age lt 65` |
-| `or` | `$filter=Status eq 'Active' or Status eq 'Pending'` |
-| `not` | `$filter=not contains(Name,'Test')` |
+| `and` | `Age gt 18 and Age lt 65` |
+| `or` | `Status eq 'Active' or Status eq 'Pending'` |
+| `not` | `not contains(Name,'Test')` |
 
 ### String Functions
 
 | Function | Example |
 |---|---|
-| `contains` | `$filter=contains(Name,'Smith')` |
-| `startswith` | `$filter=startswith(Email,'admin')` |
-| `endswith` | `$filter=endswith(Email,'@company.com')` |
+| `contains` | `contains(Name,'Smith')` |
+| `startswith` | `startswith(Email,'admin')` |
+| `endswith` | `endswith(Email,'@company.com')` |
 
 ### GUID Filtering
 
-Filter by GUID: `$filter=Id eq 12345678-1234-1234-1234-123456789abc`
-Filter by lookup: `$filter=OwnerId eq 12345678-1234-1234-1234-123456789abc`
+Filter by GUID: `Id eq 12345678-1234-1234-1234-123456789abc`
+Filter by lookup: `OwnerId eq 12345678-1234-1234-1234-123456789abc`
 
 ### Null Checks
 
-`$filter=Phone ne null` — records where Phone is set
-`$filter=Phone eq null` — records where Phone is empty
+`Phone ne null` — records where Phone is set
+`Phone eq null` — records where Phone is empty
 
 ## Tool Reference — Write Operations (SMB+ Tier)
 
@@ -114,11 +117,12 @@ Filter by lookup: `$filter=OwnerId eq 12345678-1234-1234-1234-123456789abc`
 
 | When user asks about... | Use this tool | Destructive? |
 |---|---|---|
-| Create / insert / add a new record | `creatio_insert_record` | Yes |
-| Update / modify / change an existing record | `creatio_update_record` | Yes |
-| Delete / remove a record | `creatio_delete_record` | Yes — requires confirmation |
+| Create / insert / add a new record | `creatio_insert_record` | Yes — requires `confirmed=true` |
+| Update / modify / change an existing record | `creatio_update_record` | Yes — requires `confirmed=true` |
+| Delete / remove a record | `creatio_delete_record` | Yes — requires `confirmed=true` |
 
-**All write tools are marked `isDestructive` and modify live data.**
+**All write tools require `confirmed=true` to execute. Call without it first to preview.**
+**Column names are validated against entity metadata before insert/update.**
 
 ### `creatio_insert_record` — Insert
 
@@ -126,14 +130,16 @@ Filter by lookup: `$filter=OwnerId eq 12345678-1234-1234-1234-123456789abc`
 
 | Parameter | Required | Description |
 |---|---|---|
-| `entityName` | Yes | Entity schema name |
-| `data` | Yes | JSON object with column values to set |
+| `entity` | Yes | Entity schema name |
+| `values` | Yes | JSON string of column:value pairs, e.g. `{"Name":"John","Email":"j@co.com"}` |
+| `confirmed` | No | Must be `true` to execute; omit to preview the operation |
 | `environment` | No | Target environment name |
 
 **Usage guidance:**
 - Provide only the columns you want to set — Creatio fills defaults for the rest
 - Lookup columns require the GUID value (e.g. `"OwnerId": "guid-here"`)
-- The tool returns the created record's GUID on success
+- Column names are validated against entity metadata before the insert executes
+- The tool returns the created record on success
 
 ### `creatio_update_record` — Update
 
@@ -141,15 +147,16 @@ Filter by lookup: `$filter=OwnerId eq 12345678-1234-1234-1234-123456789abc`
 
 | Parameter | Required | Description |
 |---|---|---|
-| `entityName` | Yes | Entity schema name |
-| `recordId` | Yes | GUID of the record to update |
-| `data` | Yes | JSON object with column values to change |
+| `entity` | Yes | Entity schema name |
+| `id` | Yes | GUID of the record to update |
+| `values` | Yes | JSON string of column:value pairs to change |
+| `confirmed` | No | Must be `true` to execute; omit to preview the operation |
 | `environment` | No | Target environment name |
 
 **Usage guidance:**
 - Provide only the columns being changed — unchanged columns are not affected
 - Always verify the record exists first with `creatio_get_record`
-- For lookup columns, provide the referenced record's GUID
+- Column names are validated against entity metadata before the update executes
 
 ### `creatio_delete_record` — Delete
 
@@ -157,12 +164,12 @@ Filter by lookup: `$filter=OwnerId eq 12345678-1234-1234-1234-123456789abc`
 
 | Parameter | Required | Description |
 |---|---|---|
-| `entityName` | Yes | Entity schema name |
-| `recordId` | Yes | GUID of the record to delete |
+| `entity` | Yes | Entity schema name |
+| `id` | Yes | GUID of the record to delete |
+| `confirmed` | Yes | Must be `true` to execute |
 | `environment` | No | Target environment name |
 
 **Usage guidance:**
-- **Requires explicit user confirmation before execution**
 - Deletion is permanent — there is no recycle bin
 - Check for dependent records (details, lookups) before deleting
 - Prefer deactivation (setting an `Active` or `Status` column) over deletion when possible
@@ -180,14 +187,14 @@ Filter by lookup: `$filter=OwnerId eq 12345678-1234-1234-1234-123456789abc`
 
 | Parameter | Required | Description |
 |---|---|---|
-| `sql` | Yes | SQL statement to execute |
+| `script` | Yes | SQL statement to execute |
+| `confirmed` | No | Must be `true` for non-SELECT (DML) queries |
 | `environment` | No | Target environment name |
 
 **Safety rules:**
 - **SELECT statements execute immediately** — no confirmation needed
-- **Non-SELECT statements (INSERT, UPDATE, DELETE, DDL) require explicit user confirmation**
+- **Non-SELECT statements (INSERT, UPDATE, DELETE, DDL) require `confirmed=true`**
 - All SQL must be cross-database compatible (MSSQL + PostgreSQL) — see `creatio-security.mdc`
-- Use parameterized patterns where possible to avoid SQL injection
 - Prefer OData tools over SQL for standard CRUD — use SQL only for complex analytics, aggregations, or operations not expressible via OData
 
 ### Cross-DB SQL Reminders
@@ -206,29 +213,29 @@ Filter by lookup: `$filter=OwnerId eq 12345678-1234-1234-1234-123456789abc`
 
 1. **Verify the record exists** — use `creatio_get_record` or `creatio_query_data` to confirm the target
 2. **Confirm with the user** — describe what will be changed and get explicit approval
-3. **Prefer narrow updates** — only include columns that need to change
-4. **Log the operation** — note the entity, record ID, and what was changed
+3. **Call without confirmed** — this previews the operation without executing it
+4. **Call with confirmed=true** — only after user approves
 
 ### Pagination Pattern (Large Datasets)
 
 For datasets larger than a single page:
 ```
-Page 1: creatio_query_data with $top=100&$skip=0
-Page 2: creatio_query_data with $top=100&$skip=100
-Page 3: creatio_query_data with $top=100&$skip=200
+Page 1: creatio_query_data with top=100, skip=0
+Page 2: creatio_query_data with top=100, skip=100
+Page 3: creatio_query_data with top=100, skip=200
 ```
 
-Use `$orderby` to ensure consistent ordering across pages.
+Use `orderby` to ensure consistent ordering across pages.
+Use `count: true` on the first request to know the total.
 
 ### Lookup Resolution Pattern
 
-To display human-readable lookup values:
+To display human-readable lookup values, use `expand` to inline them:
 ```
-1. creatio_query_data on main entity with $select including the lookup column
-2. creatio_query_data on the lookup entity to resolve GUIDs to display names
+creatio_query_data with entity="Activity", select="Subject,CreatedOn", expand="Owner($select=Name),Status($select=Name)"
 ```
 
-Or use `$expand` to inline the lookup values in a single request.
+This returns the related Owner and Status names in a single request.
 
 ## Destructive Operations Warning
 
@@ -236,8 +243,8 @@ Or use `$expand` to inline the lookup values in a single request.
 |---|---|---|
 | `creatio_query_data` | None (read-only) | No |
 | `creatio_get_record` | None (read-only) | No |
-| `creatio_insert_record` | Medium — creates data | Recommended |
-| `creatio_update_record` | High — modifies live data | Recommended |
-| `creatio_delete_record` | Critical — permanent deletion | **Mandatory** |
+| `creatio_insert_record` | Medium — creates data | `confirmed=true` |
+| `creatio_update_record` | High — modifies live data | `confirmed=true` |
+| `creatio_delete_record` | Critical — permanent deletion | `confirmed=true` |
 | `creatio_execute_sql` (SELECT) | None (read-only) | No |
-| `creatio_execute_sql` (non-SELECT) | Critical — direct DB modification | **Mandatory** |
+| `creatio_execute_sql` (non-SELECT) | Critical — direct DB modification | `confirmed=true` |

@@ -153,8 +153,8 @@ You should see JSON results with Contact records.
 | `creatio_disconnect` | Disconnect from a Creatio instance |
 | `creatio_list_environments` | List all configured environments |
 | `creatio_health_check` | Check Creatio instance health with latency metrics |
-| `creatio_query_data` | Query data via OData with filtering and pagination |
-| `creatio_get_record` | Retrieve a single record by ID |
+| `creatio_query_data` | Query data via OData with filtering, pagination, `$expand` (navigation property expansion), and `$count` (total record count) |
+| `creatio_get_record` | Retrieve a single record by ID with optional `$expand` for navigation properties |
 | `creatio_search_academy` | Search the Creatio knowledge base |
 | `creatio_generate_cursor_rules` | Generate Cursor IDE development rules |
 

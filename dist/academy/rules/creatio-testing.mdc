@@ -34,27 +34,27 @@ ALWAYS use testing tools when the user asks about:
 | API response times, endpoint latency | `creatio_test_api_performance` |
 | Configuration correctness, settings validation | `creatio_test_configuration` |
 
-**`creatio_health_check_extended`** — Goes beyond the basic `creatio_health_check` (from deployment tools). Checks database connectivity, Redis cache status, web server health, license validity, and service availability. Returns a detailed status report with per-component health indicators.
+**`creatio_health_check_extended`** — Goes beyond the basic `creatio_health_check` (from deployment tools). Measures login endpoint latency, OData query latency, compile endpoint availability, and ClioGate reachability. Returns a per-component health status (healthy/degraded/critical) with response times and recommendations.
 
-**`creatio_test_data_integrity`** — Scans for orphaned records, broken lookup references, duplicate GUIDs, and referential integrity violations. Accepts an optional `entityName` parameter to focus on a specific entity, or runs system-wide by default.
+**`creatio_test_data_integrity`** — Scans for orphaned lookups, duplicate records, null required fields, and date consistency issues. Accepts an optional `entityName` parameter to focus on a specific entity (auto-discovers custom entities if omitted), and an optional `checkType` parameter (`"orphans"`, `"duplicates"`, `"nulls"`, `"dates"`, or `"all"` — default: `"all"`).
 
-**`creatio_test_api_performance`** — Measures response times for key API endpoints (OData, DataService, ProcessService). Returns latency percentiles (p50, p95, p99) and flags endpoints exceeding thresholds. Accepts an optional `endpoints` parameter to test specific URLs.
+**`creatio_test_api_performance`** — Sends concurrent OData read requests and measures min/max/avg/p95 response times, success rate, and throughput. Accepts optional parameters: `concurrency` (number of concurrent requests, default 10, max 50), `entity` (OData entity to query, default `"Contact"`), and `durationSeconds` (test duration, default 5, max 30).
 
-**`creatio_test_configuration`** — Validates system settings, feature toggles, and application configuration against known-good baselines. Reports misconfigurations, deprecated settings, and recommended changes.
+**`creatio_test_configuration`** — Validates instance configuration: custom package count, custom schema count, package dependency graph, and ClioGate version compatibility. Reports issues found with severity levels.
 
 ### Regression & Simulation
 
 | When user asks about... | Use this tool |
 |---|---|
 | Capture/compare regression snapshots | `creatio_test_regression_snapshot` |
-| Simulate user workflows end-to-end | `creatio_test_user_simulation` |
+| Concurrent API load test, session stability | `creatio_test_user_simulation` |
 | View past test results | `creatio_list_test_results` |
 
-**`creatio_test_regression_snapshot`** — Captures a snapshot of entity counts, schema checksums, and key configuration values. Use `action: "capture"` to save a baseline, `action: "compare"` to detect changes since the last snapshot. Essential before and after deployments.
+**`creatio_test_regression_snapshot`** — Captures a snapshot of entity counts, custom schema count, package list, and OData response time. Use `mode: "capture"` to save a baseline, `mode: "compare"` to detect changes since the last snapshot. Essential before and after deployments.
 
-**`creatio_test_user_simulation`** — Simulates a user workflow (login → navigate → create record → save → verify). Accepts a `scenario` parameter defining the steps. Validates that the workflow completes without errors and within time thresholds.
+**`creatio_test_user_simulation`** — Concurrent API load test using the shared MCP session: sends N parallel request cycles (login → query Contact → read Account → logout) to measure instance stability under concurrent load. Not true multi-user isolation — all cycles share the MCP auth context. Accepts a required `userCount` parameter (number of concurrent request cycles, max 200).
 
-**`creatio_list_test_results`** — Returns historical test results with timestamps, pass/fail status, and summary metrics. Accepts optional `testType` and `limit` parameters to filter results.
+**`creatio_list_test_results`** — Returns historical test results with timestamps, pass/fail status, and summary metrics. Accepts an optional `type` parameter to filter by test type (e.g. `"health"`, `"integrity"`, `"performance"`, `"load"`, `"regression"`).
 
 ### Basic Assessment Workflow
 
@@ -74,16 +74,18 @@ Or use the guided prompt: **`creatio_run_health_assessment`** — runs all healt
 | Advanced load testing, concurrent users, throughput | `creatio_test_load_advanced` |
 | Capacity planning, scaling thresholds, growth projections | `creatio_test_capacity_planning` |
 
-**`creatio_test_load_advanced`** — Runs multi-user load tests with configurable concurrency, duration, and request patterns. Measures throughput (req/s), error rates, and latency under load. Accepts parameters:
+**`creatio_test_load_advanced`** — Full load/stress testing engine with ramp-up, spike, soak, and constant scenarios. Measures p50/p95/p99, error rates, throughput curves, and detects breaking points. Up to 5000 concurrent users. Accepts parameters:
 
 | Parameter | Required | Description |
 |---|---|---|
-| `concurrentUsers` | No | Number of simulated concurrent users (default: 10) |
-| `durationSeconds` | No | Test duration in seconds (default: 60) |
-| `scenario` | No | Load test scenario (e.g. `"crud_mix"`, `"read_heavy"`, `"write_heavy"`) |
+| `maxUsers` | **Yes** | Maximum concurrent users (1–5000) |
+| `scenario` | No | Load scenario: `"constant"` (default), `"ramp-up"`, `"spike"`, `"soak"` |
+| `durationSeconds` | No | Test duration in seconds (default: 30, max 300) |
+| `rampUpSeconds` | No | Ramp-up duration for `ramp-up` scenario |
+| `targetEntity` | No | OData entity to target (default: `"Contact"`) |
 | `environment` | No | Target environment name |
 
-**`creatio_test_capacity_planning`** — Analyzes current resource utilization (CPU, memory, database connections, cache hit ratio) and projects capacity limits based on growth trends. Outputs recommendations for scaling.
+**`creatio_test_capacity_planning`** — Estimates instance capacity by running incremental load levels (10→50→100→200→500→1000 users). Returns estimated max concurrent users and scaling recommendations. Accepts an optional `targetEntity` parameter (OData entity, default `"Contact"`).
 
 ### Security & Process Testing
 
@@ -93,25 +95,25 @@ Or use the guided prompt: **`creatio_run_health_assessment`** — runs all healt
 | Business process execution testing | `creatio_test_business_process` |
 | Custom test scenarios with scripted steps | `creatio_test_custom_scenario` |
 
-**`creatio_test_security`** — Runs automated security checks: OWASP Top 10 coverage, authentication bypass attempts, authorization boundary testing, input validation, and header analysis. Complements the InfoSec audit tools with active testing.
+**`creatio_test_security`** — OWASP-aligned security checks: auth endpoint hardening, security headers, CSRF protection, cookie flags, rate limiting, and error info leakage. Returns a security score (0–100) and detailed findings.
 
-**`creatio_test_business_process`** — Executes a business process in test mode and validates outputs, timing, and error handling. Accepts a `processName` parameter. Reports step-by-step execution results.
+**`creatio_test_business_process`** — Triggers a business process via ClioGate (or ProcessEngineService fallback), monitors completion via SysProcessLog, and reports timing and errors. Accepts parameters: `processName` (required), optional `testData` (JSON string with process input parameters), and optional `timeoutSeconds` (max wait for completion, default 60, max 300).
 
-**`creatio_test_custom_scenario`** — Executes a user-defined test scenario with scripted steps (API calls, assertions, wait conditions). Accepts a `steps` parameter with an array of test actions.
+**`creatio_test_custom_scenario`** — Executes a user-defined test scenario: a JSON array of steps with endpoint, method, body, assertions (statusCode, maxResponseMs, bodyContains), and repeat count. Accepts a `scenario` parameter (JSON string of the steps array).
 
 ### Regression & Reporting
 
 | When user asks about... | Use this tool |
 |---|---|
 | Full regression test suite across all entities | `creatio_test_regression_full` |
-| Export test reports (PDF, JSON, CSV) | `creatio_test_report_export` |
+| Export test reports (JSON, Markdown, JUnit) | `creatio_test_report_export` |
 | Trend analysis across historical test runs | `creatio_test_trend_analysis` |
 
-**`creatio_test_regression_full`** — Comprehensive regression test: schema integrity, data counts, API responses, process execution, and configuration drift. Compares against the last captured baseline.
+**`creatio_test_regression_full`** — Comprehensive regression suite: API endpoint availability (OData, AuthService, ClioGate), CRUD on custom entities, and cross-entity referential integrity. Accepts an optional `baselineId` parameter (previous test result ID) to compare against and detect regressions.
 
-**`creatio_test_report_export`** — Exports test results in structured formats. Accepts a `format` parameter: `"pdf"`, `"json"`, or `"csv"`. Includes summary metrics, detailed findings, and trend charts.
+**`creatio_test_report_export`** — Exports a test result in JSON, Markdown, or JUnit XML format for CI/CD integration. Accepts a required `testResultId` parameter (ID of the test result to export) and a required `format` parameter: `"json"`, `"markdown"`, or `"junit"`.
 
-**`creatio_test_trend_analysis`** — Analyzes test result history to identify performance trends, degradation patterns, and reliability metrics over time. Accepts optional `days` parameter (default: 30).
+**`creatio_test_trend_analysis`** — Analyzes performance trends over multiple test runs: response time degradation, error rate increases, capacity changes. Accepts a required `type` parameter (test type to analyze, e.g. `"health"`, `"performance"`, `"load"`) and an optional `count` parameter (number of recent runs to analyze, default 10, max 50).
 
 ## Guided Prompts
 
@@ -140,12 +142,12 @@ After every deployment, run this sequence or use `creatio_run_health_assessment`
 
 Before promoting to production:
 
-1. `creatio_test_regression_snapshot` with `action: "capture"` — baseline on staging
+1. `creatio_test_regression_snapshot` with `mode: "capture"` — baseline on staging
 2. Deploy the release
 3. `creatio_test_regression_full` — full comparison against baseline
 4. `creatio_test_business_process` — test critical processes
 5. `creatio_test_security` — security validation
-6. `creatio_test_report_export` with `format: "pdf"` — generate release test report
+6. `creatio_test_report_export` with `format: "markdown"` — generate release test report
 
 ### Performance Investigation (Enterprise)
 
@@ -156,12 +158,12 @@ When users report slow performance, use `creatio_diagnose_performance` or:
 2. `creatio_test_api_performance` — measure current latency
 
 **Phase 2 — Load Analysis:**
-3. `creatio_test_load_advanced` with `scenario: "read_heavy"` — test read path
-4. `creatio_test_load_advanced` with `scenario: "write_heavy"` — test write path
+3. `creatio_test_load_advanced` with `scenario: "constant"` — test constant load
+4. `creatio_test_load_advanced` with `scenario: "ramp-up"` — test increasing load
 5. `creatio_test_capacity_planning` — check resource utilization
 
 **Phase 3 — Diagnosis:**
-6. `creatio_test_trend_analysis` — compare with historical performance
+6. `creatio_test_trend_analysis` with `type: "performance"` — compare with historical performance
 7. Correlate findings to identify the bottleneck (database, cache, application, network)
 
 ### Capacity Planning (Enterprise)
@@ -169,16 +171,16 @@ When users report slow performance, use `creatio_diagnose_performance` or:
 For growth planning, use `creatio_plan_capacity_upgrade` or:
 
 1. `creatio_test_capacity_planning` — current utilization and projections
-2. `creatio_test_load_advanced` with increasing `concurrentUsers` — find breaking point
-3. `creatio_test_trend_analysis` with `days: 90` — 90-day growth trend
+2. `creatio_test_load_advanced` with increasing `maxUsers` — find breaking point
+3. `creatio_test_trend_analysis` with `type: "capacity"`, `count: 20` — recent capacity trend
 4. `creatio_test_report_export` — generate capacity planning report
 
 ## Performance Testing Guidance for Large Databases
 
 ### Databases with 1M+ Records
 
-- Set `concurrentUsers` conservatively — start with 5, increase in steps of 5
-- Use `scenario: "read_heavy"` first to establish a read baseline before write tests
+- Set `maxUsers` conservatively — start with 5, increase in steps of 5
+- Use `scenario: "constant"` first to establish a baseline before ramp-up or spike tests
 - Monitor database connection pool exhaustion during load tests
 - Allow 5+ minutes cooldown between successive load tests
 
