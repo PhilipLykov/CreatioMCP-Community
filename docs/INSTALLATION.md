@@ -7,8 +7,8 @@ Step-by-step guide to install and configure the Community Edition.
 | Requirement | Version | Notes |
 |-------------|---------|-------|
 | Node.js | 20+ | [Download](https://nodejs.org/) |
-| Creatio | 8.x | On-premises instance with admin access |
-| IDE | Any | Cursor IDE or Claude Desktop recommended |
+| Creatio | 8.x | Cloud or on-premises instance with admin access |
+| IDE | See below | Cursor IDE (v0.40+) or Claude Desktop |
 
 ## Step 1: Install Node.js
 
@@ -55,33 +55,28 @@ If the connection succeeds, the wizard:
 1. Saves encrypted credentials locally in `~/.creatiomcp/`
 2. Prints a Cursor MCP configuration block
 
-## Step 4: Configure Your IDE
+## Step 4: Connect Your IDE
 
-### Cursor IDE
+### Option A: Cursor IDE — Settings UI (recommended)
 
-1. Open Cursor Settings (Ctrl+Comma or Cmd+Comma)
-2. Navigate to **MCP** section
-3. Add the following configuration:
+1. Open Cursor Settings: `Ctrl+,` (Windows/Linux) or `Cmd+,` (macOS)
+2. Navigate to **Tools & MCP**
+3. Click **"Add new MCP server"**
+4. Fill in:
+   - **Name:** `creatio`
+   - **Type:** `command`
+   - **Command:** `creatio-mcp-server start`
+5. Click **Install**
+6. **Fully restart Cursor** — close the application completely and reopen it (just reloading the window is not enough)
 
-```json
-{
-  "mcpServers": {
-    "creatio": {
-      "command": "creatio-mcp-server",
-      "args": ["start"]
-    }
-  }
-}
-```
+After restart, you should see `creatio` listed under Tools & MCP with a green status indicator.
 
-4. Restart Cursor IDE
+### Option A (alternative): Cursor IDE — JSON Configuration
 
-### Claude Desktop
+You can also configure Cursor via a JSON file. This is useful for sharing the configuration across a team.
 
-Add to your Claude Desktop configuration file:
-
-**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Project-level** (applies to one project): create `.cursor/mcp.json` in your project root.
+**Global** (applies to all projects): create `~/.cursor/mcp.json`.
 
 ```json
 {
@@ -94,7 +89,42 @@ Add to your Claude Desktop configuration file:
 }
 ```
 
-Restart Claude Desktop.
+Save the file and **fully restart Cursor**.
+
+### Option B: Claude Desktop
+
+1. Open Claude Desktop
+2. Go to **Settings → Developer → Edit Config** (or edit the file directly)
+
+Configuration file locations:
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+Add the CreatioMCP server entry:
+
+```json
+{
+  "mcpServers": {
+    "creatio": {
+      "command": "creatio-mcp-server",
+      "args": ["start"]
+    }
+  }
+}
+```
+
+3. **Fully restart Claude Desktop** — close the application completely and reopen it
+4. When connected, you should see the tools icon (🔨) in the chat input area indicating MCP tools are available
+
+### Option C: Any MCP-Compatible Client
+
+CreatioMCP uses the standard stdio transport. Any MCP-compatible client can connect by running:
+
+```
+creatio-mcp-server start
+```
+
+The server communicates via stdin/stdout using the MCP JSON-RPC protocol.
 
 ## Step 5: Verify the Connection
 
@@ -103,6 +133,11 @@ In your IDE chat, type:
 > "Use creatio_health_check to verify my Creatio connection."
 
 You should receive a response with the Creatio instance status and latency metrics.
+
+If the tools are not visible, check:
+1. Did you fully restart the IDE (not just reload)?
+2. Is `creatio-mcp-server` accessible from your system PATH? Run `creatio-mcp-server --version` in a terminal to verify.
+3. Check the IDE's MCP logs for error messages (in Cursor: Tools & MCP → click on the server name to see logs).
 
 ## Step 6 (Optional): Set Up Academy Knowledge Base
 

@@ -10,16 +10,17 @@ A product of **ITSC** | Contact: philip@itsc.md
 
 ## What is CreatioMCP?
 
-CreatioMCP is an on-premises Model Context Protocol (MCP) server that connects AI development environments (Cursor IDE, Claude Desktop) directly to Creatio 8.x instances. It enables AI-assisted development — replacing manual configuration with natural-language-driven automation to dramatically shorten time-to-market for Creatio projects.
+CreatioMCP is a Model Context Protocol (MCP) server that connects AI development environments (Cursor IDE, Claude Desktop) directly to Creatio 8.x instances — both cloud and on-premises. It enables AI-assisted development — replacing manual configuration with natural-language-driven automation to dramatically shorten time-to-market for Creatio projects.
 
-All processing runs on-premises, ensuring full auditability and data sovereignty.
+All MCP server processing runs locally on your machine, ensuring full auditability and data sovereignty.
 
 ## Community Edition Features
 
 The Community Edition is **free** and provides the core capabilities needed to get started with AI-assisted Creatio development:
 
 ### Environment Management
-- Connect and authenticate to on-premises Creatio instances (cookie-based authentication)
+- Connect and authenticate to Creatio 8.x instances (cloud or on-premises)
+- Cookie-based authentication (Community), OAuth 2.0 (SMB+)
 - Single environment support
 - Health checks with latency metrics
 - Session lifecycle management
@@ -70,9 +71,23 @@ creatio-mcp-server setup --url https://myapp.creatio.com --login admin --passwor
 
 The setup wizard validates the connection and prints a Cursor MCP configuration block.
 
-### Connect to Cursor IDE
+### Connect to Your IDE
 
-Paste the printed configuration into Cursor's MCP settings (Settings → MCP):
+#### Option A: Cursor IDE (via Settings UI)
+
+1. Open Cursor Settings: `Ctrl+,` (Windows/Linux) or `Cmd+,` (macOS)
+2. Navigate to **Tools & MCP**
+3. Click **"Add new MCP server"**
+4. Fill in:
+   - **Name:** `creatio`
+   - **Type:** `command`
+   - **Command:** `creatio-mcp-server start`
+5. Click **Install**
+6. **Fully restart Cursor** (close and reopen — not just reload)
+
+#### Option A (alternative): Cursor IDE (via JSON file)
+
+Create or edit `.cursor/mcp.json` in your project root (project-level) or `~/.cursor/mcp.json` (global):
 
 ```json
 {
@@ -85,11 +100,45 @@ Paste the printed configuration into Cursor's MCP settings (Settings → MCP):
 }
 ```
 
-Restart Cursor to activate the MCP server.
+Fully restart Cursor after saving.
+
+#### Option B: Claude Desktop
+
+Edit the Claude Desktop configuration file:
+
+- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+You can also open it via Claude Desktop: **Settings → Developer → Edit Config**.
+
+Add the CreatioMCP server:
+
+```json
+{
+  "mcpServers": {
+    "creatio": {
+      "command": "creatio-mcp-server",
+      "args": ["start"]
+    }
+  }
+}
+```
+
+**Fully restart Claude Desktop** (close and reopen, not just close the window).
+
+When connected, you should see the tools icon (🔨) in the chat input area.
+
+### Verify the Connection
+
+In your IDE chat, type:
+
+> "Use creatio_health_check to verify my Creatio connection."
+
+You should receive a response with the Creatio instance status and latency metrics.
 
 ### First Query
 
-In Cursor chat, ask the AI to read data from your Creatio instance:
+Ask the AI to read data:
 
 > "Use creatio_query_data to read the first 5 Contacts from my Creatio instance."
 
@@ -163,8 +212,8 @@ For pricing and licensing inquiries, contact: **philip@itsc.md**
 ## Requirements
 
 - Node.js 20+
-- Creatio 8.x on-premises
-- Cursor IDE or Claude Desktop
+- Creatio 8.x (cloud or on-premises)
+- Cursor IDE (v0.40+) or Claude Desktop
 
 ## Security
 
