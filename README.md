@@ -30,7 +30,7 @@ The Community Edition is **free** and provides the core capabilities needed to g
 - Safe read-only access — no risk of accidental data modifications
 
 ### Machine Academy™
-General-purpose AI models lack Creatio-specific training data and hallucinate when asked to generate Creatio code — inventing non-existent APIs, wrong component names, and deprecated patterns. Machine Academy solves this by grounding your AI IDE in a knowledge base carefully built based on official Creatio documentation and specifications, fused with know-how of real experts with many years of experience in Creatio development and deployment. It teaches Cursor or Claude Desktop to write Creatio code correctly on the first attempt.
+General-purpose AI models lack Creatio-specific training data and hallucinate when asked to generate Creatio code — inventing non-existent APIs, wrong component names, and deprecated patterns. Machine Academy solves this by grounding your AI IDE in a knowledge base meticulously built from official Creatio documentation and platform specifications, enriched with the hands-on expertise of seasoned professionals with years of Creatio development and deployment experience. It teaches Cursor or Claude Desktop to write Creatio code correctly on the first attempt.
 
 - Full-text search across curated implementation guidance with verified code examples
 - Component catalog with Freedom UI patterns — eliminates hallucinated component names
